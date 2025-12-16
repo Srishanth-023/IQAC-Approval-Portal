@@ -168,10 +168,23 @@ function StaffHome() {
           <input
             className="form-control mb-3"
             type="file"
-            accept=".pdf,.jpg,.png,.doc,.docx"
-            onChange={(e) => setReport(e.target.files[0])}
+            accept=".pdf,application/pdf"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) {
+                // Check if file is PDF
+                if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+                  toast.error("Only PDF files are allowed. Please upload a PDF file.");
+                  e.target.value = ""; // Clear the input
+                  setReport(null);
+                  return;
+                }
+                setReport(file);
+              }
+            }}
             required
           />
+          <small className="text-muted">Only PDF files are accepted</small>
 
           <button className="btn btn-primary w-100">Submit</button>
         </form>

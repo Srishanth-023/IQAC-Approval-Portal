@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { toast } from "react-toastify";
 
 const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
   const [formValues, setFormValues] = useState({
@@ -17,7 +18,19 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "event_report") {
-      setFormValues((prev) => ({ ...prev, event_report: files[0] || null }));
+      const file = files[0];
+      if (file) {
+        // Check if file is PDF
+        if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+          toast.error("Only PDF files are allowed. Please upload a PDF file.");
+          e.target.value = ""; // Clear the input
+          setFormValues((prev) => ({ ...prev, event_report: null }));
+          return;
+        }
+        setFormValues((prev) => ({ ...prev, event_report: file }));
+      } else {
+        setFormValues((prev) => ({ ...prev, event_report: null }));
+      }
     } else {
       setFormValues((prev) => ({ ...prev, [name]: value }));
     }
@@ -137,14 +150,15 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
               </div>
 
               <div className="mb-3">
-                <label className="form-label">Event Report (optional)</label>
+                <label className="form-label">Event Report (optional, PDF only)</label>
                 <input
                   type="file"
                   className="form-control"
                   name="event_report"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  accept=".pdf,application/pdf"
                   onChange={handleChange}
                 />
+                <small className="text-muted">Only PDF files are accepted</small>
               </div>
             </div>
 
