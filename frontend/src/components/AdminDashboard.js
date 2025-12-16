@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { adminGetAllStaff, adminDeleteStaff } from "../api";
+import { 
+  adminGetAllStaff, 
+  adminDeleteStaff,
+  adminGetDepartments,
+  adminGetHodByDepartment 
+} from "../api";
 import { toast } from "react-toastify";
 
 export default function AdminDashboard() {
@@ -10,9 +15,23 @@ export default function AdminDashboard() {
   const role = user.role;
 
   const [staffList, setStaffList] = useState([]);
+  const [hodList, setHodList] = useState([]);
 
   useEffect(() => {
     loadStaffs();
+    loadHods();
+
+    // Refresh data when returning to this page
+    const handleFocus = () => {
+      loadStaffs();
+      loadHods();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   const loadStaffs = async () => {
@@ -21,6 +40,28 @@ export default function AdminDashboard() {
       setStaffList(res.data.staffs);
     } catch {
       toast.error("Failed to load staff list");
+    }
+  };
+
+  const loadHods = async () => {
+    try {
+      const depRes = await adminGetDepartments(role);
+      const deps = depRes.data.departments || [];
+
+      const results = await Promise.all(
+        deps.map(async (dept) => {
+          try {
+            const res = await adminGetHodByDepartment(dept, role);
+            return { department: dept, hod: res.data.hod || null };
+          } catch (e) {
+            return { department: dept, hod: null };
+          }
+        })
+      );
+
+      setHodList(results);
+    } catch {
+      toast.error("Failed to load HOD list");
     }
   };
 
@@ -37,6 +78,10 @@ export default function AdminDashboard() {
 
   const handleEdit = (staff) => {
     navigate("/admin/add-staff", { state: { editStaff: staff } });
+  };
+
+  const handleEditHod = (department) => {
+    navigate("/admin/add-hod", { state: { department } });
   };
 
   const logout = () => {
@@ -128,6 +173,45 @@ export default function AdminDashboard() {
                     onClick={() => handleDelete(s._id)}
                   >
                     Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ALL HODs TABLE */}
+      <div className="card shadow p-4 mt-4">
+        <h5>All HODs</h5>
+        <table className="table table-bordered table-striped mt-3">
+          <thead className="table-dark">
+            <tr>
+              <th>Department</th>
+              <th>HOD Name</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {hodList.map((h) => (
+              <tr key={h.department}>
+                <td>{h.department}</td>
+                <td>{h.hod ? h.hod.name : "—"}</td>
+                <td>
+                  {h.hod ? (
+                    <span className="badge bg-success">Assigned</span>
+                  ) : (
+                    <span className="badge bg-danger">Not Assigned</span>
+                  )}
+                </td>
+                <td>
+                  <button
+                    className="btn btn-warning btn-sm"
+                    onClick={() => handleEditHod(h.department)}
+                  >
+                    {h.hod ? "Edit" : "Assign"}
                   </button>
                 </td>
               </tr>
