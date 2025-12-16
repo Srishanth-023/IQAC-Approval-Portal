@@ -390,7 +390,7 @@ function StaffHome() {
                 onClick={() => handleEditRequest(req)}
                 style={{ fontWeight: "bold" }}
               >
-                ✏️ Edit & Resubmit Request
+                 Edit & Resubmit Request
               </button>
             )}
 
@@ -427,7 +427,7 @@ function StaffHome() {
           >
             <div className="modal-content border-0 shadow-lg">
               <div className="modal-header" style={{ backgroundColor: "#0d6efd", color: "white" }}>
-                <h5 className="modal-title fw-bold">✏️ Edit & Resubmit Request</h5>
+                <h5 className="modal-title fw-bold"> Edit & Resubmit Request</h5>
                 <button
                   type="button"
                   className="btn-close btn-close-white"
@@ -530,7 +530,7 @@ function StaffHome() {
           >
             <div className="modal-content border-0 shadow-lg">
               <div className="modal-header" style={{ backgroundColor: "#dc3545", color: "white" }}>
-                <h5 className="modal-title fw-bold">⚠️ Rejection Details</h5>
+                <h5 className="modal-title fw-bold"> Rejection Details</h5>
                 <button
                   type="button"
                   className="btn-close btn-close-white"
@@ -539,7 +539,7 @@ function StaffHome() {
               </div>
               <div className="modal-body">
                 <div className="mb-3 p-3 rounded" style={{ backgroundColor: "#f8f9fa" }}>
-                  <h6 className="fw-bold text-dark mb-2">📋 Event Details</h6>
+                  <h6 className="fw-bold text-dark mb-2"> Event Details</h6>
                   <p className="mb-1"><b>Event Name:</b> {selectedRejection.eventName}</p>
                   <p className="mb-0"><b>Event Date:</b> {selectedRejection.eventDate}</p>
                 </div>
@@ -548,7 +548,7 @@ function StaffHome() {
                   <p className="mb-0 fw-bold text-danger">{selectedRejection.status}</p>
                 </div>
                 <div className="p-3 rounded" style={{ backgroundColor: "#fff3cd" }}>
-                  <h6 className="fw-bold text-dark mb-3">💬 Rejection Details</h6>
+                  <h6 className="fw-bold text-dark mb-3"> Rejection Details</h6>
                   {selectedRejection.rejections && selectedRejection.rejections.length > 0 ? (
                     selectedRejection.rejections.map((rej, idx) => (
                       <div key={idx} className="card mb-2 border-0 shadow-sm">
