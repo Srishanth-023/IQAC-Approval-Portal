@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   fetchStaffRequests,
   createRequest,
+  updateRequest,
   approvalLetterDownloadUrl,
   getFreshReportUrl,
 } from "../api";
@@ -21,6 +22,19 @@ function StaffHome() {
   const [eventDate, setEventDate] = useState("");
   const [purpose, setPurpose] = useState("");
   const [report, setReport] = useState(null);
+  
+  // Rejection details modal state
+  const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [selectedRejection, setSelectedRejection] = useState(null);
+  
+  // Edit request modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingRequest, setEditingRequest] = useState(null);
+  const [editEventName, setEditEventName] = useState("");
+  const [editEventDate, setEditEventDate] = useState("");
+  const [editPurpose, setEditPurpose] = useState("");
+  const [editReport, setEditReport] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
@@ -98,6 +112,55 @@ function StaffHome() {
   const isRejected = (req) => {
     const status = (req.overallStatus || "").toLowerCase();
     return status.includes("recreation") || status.includes("rejected");
+  };
+
+  // ----------------------------------------
+  // OPEN EDIT MODAL
+  // ----------------------------------------
+  const handleEditRequest = (req) => {
+    setEditingRequest(req);
+    setEditEventName(req.eventName);
+    setEditEventDate(req.eventDate);
+    setEditPurpose(req.purpose);
+    setEditReport(null);
+    setShowEditModal(true);
+  };
+
+  // ----------------------------------------
+  // SUBMIT EDITED REQUEST
+  // ----------------------------------------
+  const handleSubmitEdit = async (e) => {
+    e.preventDefault();
+    if (!editingRequest) return;
+    
+    setIsSubmitting(true);
+    
+    const formData = new FormData();
+    formData.append("event_name", editEventName);
+    formData.append("event_date", editEventDate);
+    formData.append("purpose", editPurpose);
+    if (editReport) {
+      formData.append("event_report", editReport);
+    }
+    
+    try {
+      await updateRequest(editingRequest._id, formData);
+      toast.success("Request updated and resubmitted for approval!");
+      setShowEditModal(false);
+      setEditingRequest(null);
+      loadRequests();
+    } catch (err) {
+      console.error("Update request error:", err);
+      if (err.response?.data?.error) {
+        toast.error(err.response.data.error);
+      } else if (err.message) {
+        toast.error(err.message);
+      } else {
+        toast.error("Failed to update request");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // ----------------------------------------
@@ -307,6 +370,17 @@ function StaffHome() {
               </button>
             )}
 
+            {/* EDIT & RESUBMIT (when request is rejected/recreated) */}
+            {isRejected(req) && (
+              <button
+                className="btn btn-primary btn-sm mt-2 w-100"
+                onClick={() => handleEditRequest(req)}
+                style={{ fontWeight: "bold" }}
+              >
+                ✏️ Edit & Resubmit Request
+              </button>
+            )}
+
             {/* GENERATE APPROVAL REPORT (only after completion) */}
             {isApproved && (
               <button
@@ -326,6 +400,242 @@ function StaffHome() {
           </div>
         );
       })}
+
+      {/* EDIT REQUEST MODAL */}
+      {showEditModal && editingRequest && (
+        <div
+          className="modal fade show d-block"
+          style={{ backgroundColor: "rgba(0,0,0,0.6)", zIndex: 1050 }}
+          onClick={() => setShowEditModal(false)}
+        >
+          <div
+            className="modal-dialog modal-dialog-centered modal-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-content border-0 shadow-lg">
+              {/* Header */}
+              <div className="modal-header" style={{ backgroundColor: "#0d6efd", color: "white" }}>
+                <h5 className="modal-title fw-bold">
+                  ✏️ Edit & Resubmit Request
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowEditModal(false)}
+                ></button>
+              </div>
+              
+              {/* Body */}
+              <form onSubmit={handleSubmitEdit}>
+                <div className="modal-body">
+                  {/* Previous Status Info */}
+                  <div className="alert alert-warning mb-3">
+                    <small>
+                      <b>Previous Status:</b> {editingRequest.overallStatus}
+                      <br />
+                      <span className="text-muted">
+                        After editing, this request will be resubmitted for HOD approval.
+                      </span>
+                    </small>
+                  </div>
+                  
+                  {/* Event Name */}
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">Event Name</label>
+                    <input
+                      className="form-control"
+                      placeholder="Event Name"
+                      value={editEventName}
+                      onChange={(e) => setEditEventName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  {/* Event Date */}
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">Event Date</label>
+                    <input
+                      className="form-control"
+                      type="date"
+                      value={editEventDate}
+                      onChange={(e) => setEditEventDate(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  {/* Purpose */}
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">Purpose of Event</label>
+                    <textarea
+                      className="form-control"
+                      placeholder="Purpose of Event"
+                      rows={4}
+                      value={editPurpose}
+                      onChange={(e) => setEditPurpose(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  {/* File Upload */}
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">
+                      Upload New Report (Optional)
+                    </label>
+                    <input
+                      className="form-control"
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+                            toast.error("Only PDF files are allowed.");
+                            e.target.value = "";
+                            setEditReport(null);
+                            return;
+                          }
+                          setEditReport(file);
+                        }
+                      }}
+                    />
+                    <small className="text-muted">
+                      Leave empty to keep the existing file. Only PDF files accepted.
+                    </small>
+                  </div>
+                </div>
+                
+                {/* Footer */}
+                <div className="modal-footer border-0">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowEditModal(false)}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2"></span>
+                        Submitting...
+                      </>
+                    ) : (
+                      "Resubmit Request"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REJECTION DETAILS MODAL */}
+      {showRejectionModal && selectedRejection && (
+        <div
+          className="modal fade show d-block"
+          style={{ backgroundColor: "rgba(0,0,0,0.6)", zIndex: 1050 }}
+          onClick={() => setShowRejectionModal(false)}
+        >
+          <div
+            className="modal-dialog modal-dialog-centered"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-content border-0 shadow-lg">
+              {/* Header */}
+              <div className="modal-header" style={{ backgroundColor: "#dc3545", color: "white" }}>
+                <h5 className="modal-title fw-bold">
+                  ⚠️ Request Rejected / Recreation Required
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowRejectionModal(false)}
+                ></button>
+              </div>
+              
+              {/* Body */}
+              <div className="modal-body">
+                {/* Event Info */}
+                <div className="mb-3 p-3 rounded" style={{ backgroundColor: "#f8f9fa" }}>
+                  <h6 className="fw-bold text-dark mb-2">📋 Event Details</h6>
+                  <p className="mb-1"><b>Event Name:</b> {selectedRejection.eventName}</p>
+                  <p className="mb-0"><b>Event Date:</b> {selectedRejection.eventDate}</p>
+                </div>
+                
+                {/* Status */}
+                <div className="mb-3 p-3 rounded border border-danger" style={{ backgroundColor: "#fff5f5" }}>
+                  <h6 className="fw-bold text-danger mb-2">🚫 Current Status</h6>
+                  <p className="mb-0 fw-bold text-danger">{selectedRejection.status}</p>
+                </div>
+                
+                {/* Rejection Details */}
+                <div className="p-3 rounded" style={{ backgroundColor: "#fff3cd" }}>
+                  <h6 className="fw-bold text-dark mb-3">💬 Rejection / Recreation Details</h6>
+                  
+                  {selectedRejection.rejections && selectedRejection.rejections.length > 0 ? (
+                    selectedRejection.rejections.map((rej, idx) => (
+                      <div key={idx} className="card mb-2 border-0 shadow-sm">
+                        <div className="card-body p-3">
+                          <div className="d-flex align-items-center mb-2">
+                            <span className="badge bg-danger me-2" style={{ fontSize: "0.9rem" }}>
+                              {rej.role}
+                            </span>
+                            <small className="text-muted">
+                              {new Date(rej.decidedAt).toLocaleString()}
+                            </small>
+                          </div>
+                          <div className="p-2 rounded" style={{ backgroundColor: "#f8f9fa" }}>
+                            <b>Reason:</b>{" "}
+                            {rej.comments ? (
+                              <span className="text-dark">{rej.comments}</span>
+                            ) : (
+                              <i className="text-muted">No reason provided</i>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : selectedRejection.rejectorRole ? (
+                    <div className="card border-0 shadow-sm">
+                      <div className="card-body p-3">
+                        <div className="d-flex align-items-center mb-2">
+                          <span className="badge bg-danger me-2" style={{ fontSize: "0.9rem" }}>
+                            {selectedRejection.rejectorRole}
+                          </span>
+                          <small className="text-muted">Requested recreation</small>
+                        </div>
+                        <div className="p-2 rounded" style={{ backgroundColor: "#f8f9fa" }}>
+                          <i className="text-muted">
+                            Please contact {selectedRejection.rejectorRole} for detailed feedback.
+                          </i>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-muted mb-0">No detailed remarks available.</p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Footer */}
+              <div className="modal-footer border-0">
+                <button
+                  className="btn btn-secondary px-4"
+                  onClick={() => setShowRejectionModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

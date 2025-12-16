@@ -61,6 +61,12 @@ export const getFreshReportUrl = (id) =>
   API.get(`/requests/${id}/report-url`);
 
 // =============================================
+// STAFF: UPDATE/EDIT REJECTED REQUEST
+// =============================================
+export const updateRequest = (id, formData) =>
+  API.post(`/requests/${id}/edit`, formData);
+
+// =============================================
 // ========== ADMIN APIs ==========
 // =============================================
 

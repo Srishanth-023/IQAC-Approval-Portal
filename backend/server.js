@@ -22,7 +22,11 @@ const Request = require("./models/Request");
 // APP SETUP
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'x-user-role']
+}));
 
 // ===============================
 // CONSTANTS
@@ -520,6 +524,54 @@ app.get("/api/requests/:id/report-url", async (req, res) => {
     res.json({ url: reportUrl });
   } catch (e) {
     console.error(e);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ===============================
+// UPDATE/EDIT REJECTED REQUEST (STAFF RESUBMIT)
+// ===============================
+app.post("/api/requests/:id/edit", upload.single("event_report"), async (req, res) => {
+  try {
+    const { event_name, event_date, purpose } = req.body;
+    
+    const doc = await Request.findById(req.params.id);
+    if (!doc) return res.status(404).json({ error: "Request not found" });
+    
+    // Only allow editing if request was rejected/recreation requested
+    const status = (doc.overallStatus || "").toLowerCase();
+    const canEdit = status.includes("recreat") || status.includes("rejected") || doc.currentRole === null;
+    
+    console.log("Edit request - Status:", doc.overallStatus, "Can edit:", canEdit);
+    
+    if (!canEdit) {
+      return res.status(400).json({ error: "Only rejected requests can be edited" });
+    }
+    
+    // Update fields
+    if (event_name) doc.eventName = event_name;
+    if (event_date) doc.eventDate = event_date;
+    if (purpose) doc.purpose = purpose;
+    
+    // If new file uploaded, update it
+    if (req.file) {
+      const fileUrl = await uploadToS3(req.file);
+      doc.reportPath = fileUrl;
+    }
+    
+    // Reset the request to go back to HOD for approval
+    doc.currentRole = "HOD";
+    doc.overallStatus = "Waiting approval for HOD";
+    doc.isCompleted = false;
+    // Keep previous approvals for history, but clear workflow roles for fresh start
+    doc.workflowRoles = [];
+    doc.referenceNo = null;
+    
+    await doc.save();
+    
+    res.json({ message: "Request updated and resubmitted for approval", request: doc });
+  } catch (e) {
+    console.error("Edit request error:", e);
     res.status(500).json({ error: "Server error" });
   }
 });
