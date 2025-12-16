@@ -155,49 +155,8 @@ export default function AdminDashboard() {
 
       </div>
 
-      {/* ALL STAFFS TABLE */}
-      <div className="card shadow p-4 mt-5">
-        <h5>All Staffs</h5>
-        <table className="table table-bordered table-striped mt-3">
-          <thead className="table-dark">
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Department</th>
-              <th>Password</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {staffList.map((s) => (
-              <tr key={s._id}>
-                <td>{s.name}</td>
-                <td>{s.email}</td>
-                <td>{s.department}</td>
-                <td>{s.password}</td>
-                <td>
-                  <button
-                    className="btn btn-warning btn-sm me-2"
-                    onClick={() => handleEdit(s)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleDelete(s._id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
       {/* ALL HODs TABLE */}
-      <div className="card shadow p-4 mt-4">
+      <div className="card shadow p-4 mt-5">
         <h5>All HODs</h5>
         <table className="table table-bordered table-striped mt-3">
           <thead className="table-dark">
@@ -238,6 +197,47 @@ export default function AdminDashboard() {
                       Unassign
                     </button>
                   )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ALL STAFFS TABLE */}
+      <div className="card shadow p-4 mt-4">
+        <h5>All Staffs</h5>
+        <table className="table table-bordered table-striped mt-3">
+          <thead className="table-dark">
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Department</th>
+              <th>Password</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {staffList.map((s) => (
+              <tr key={s._id}>
+                <td>{s.name}</td>
+                <td>{s.email}</td>
+                <td>{s.department}</td>
+                <td>{s.password}</td>
+                <td>
+                  <button
+                    className="btn btn-warning btn-sm me-2"
+                    onClick={() => handleEdit(s)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleDelete(s._id)}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
