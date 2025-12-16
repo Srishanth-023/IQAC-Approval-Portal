@@ -50,6 +50,10 @@ export const actOnRequest = (id, payload) =>
 export const approvalLetterUrl = (id) =>
   `${API.defaults.baseURL}/requests/${id}/approval-letter`;
 
+// Download approval letter
+export const approvalLetterDownloadUrl = (id) =>
+  `${API.defaults.baseURL}/requests/${id}/approval-letter?download=true`;
+
 // =============================================
 // GET FRESH SIGNED URL FOR REPORT
 // =============================================

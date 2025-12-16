@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   fetchStaffRequests,
   createRequest,
-  approvalLetterUrl,
+  approvalLetterDownloadUrl,
   getFreshReportUrl,
 } from "../api";
 import { toast } from "react-toastify";
@@ -254,7 +254,7 @@ function StaffHome() {
                 className="btn btn-success btn-sm mt-2 w-100"
                 onClick={() => {
                   const link = document.createElement("a");
-                  link.href = approvalLetterUrl(req._id);
+                  link.href = approvalLetterDownloadUrl(req._id);
                   link.download = `Approval-Report-${req.refNumber || req._id}.pdf`;
                   document.body.appendChild(link);
                   link.click();

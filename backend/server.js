@@ -632,9 +632,20 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
 
     const pdfBuffer = await htmlPdf.generatePdf(file, options);
 
-    // Set headers for PDF download
+    // Check if download parameter is present
+    const shouldDownload = req.query.download === 'true';
+
+    // Set headers for PDF
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="Approval-Report-${doc.referenceNo || doc._id}.pdf"`);
+    
+    if (shouldDownload) {
+      // Force download
+      res.setHeader('Content-Disposition', `attachment; filename="Approval-Report-${doc.referenceNo || doc._id}.pdf"`);
+    } else {
+      // View inline in browser
+      res.setHeader('Content-Disposition', `inline; filename="Approval-Report-${doc.referenceNo || doc._id}.pdf"`);
+    }
+    
     res.send(pdfBuffer);
 
   } catch (e) {

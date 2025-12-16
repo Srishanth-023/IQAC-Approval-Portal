@@ -127,14 +127,12 @@ export default function AdminAllRequests() {
                     </span>
                   </td>
                   <td>
-                    <a
+                    <button
                       className="btn btn-primary btn-sm"
-                      href={approvalLetterUrl(req._id)}
-                      target="_blank"
-                      rel="noreferrer"
+                      onClick={() => window.open(approvalLetterUrl(req._id), "_blank")}
                     >
                       View Approval Letter
-                    </a>
+                    </button>
                   </td>
                   <td>
                     <button
