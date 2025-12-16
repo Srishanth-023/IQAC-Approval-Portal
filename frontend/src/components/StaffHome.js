@@ -25,6 +25,10 @@ function StaffHome() {
   // Modal state for duplicate warning
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [duplicateMessage, setDuplicateMessage] = useState("");
+  
+  // Modal state for rejection details
+  const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [selectedRejection, setSelectedRejection] = useState(null);
 
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
@@ -394,6 +398,79 @@ function StaffHome() {
                   onClick={() => setShowDuplicateModal(false)}
                 >
                   Understood
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* REJECTION DETAILS MODAL */}
+      {showRejectionModal && selectedRejection && (
+        <div 
+          className="modal show d-block" 
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          onClick={() => setShowRejectionModal(false)}
+        >
+          <div 
+            className="modal-dialog modal-dialog-centered modal-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-content">
+              <div className="modal-header bg-danger text-white">
+                <h5 className="modal-title">
+                  <i className="bi bi-x-circle-fill me-2"></i>
+                  Rejection Details
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowRejectionModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <h6 className="fw-bold">Event Details:</h6>
+                  <p className="mb-1"><strong>Event Name:</strong> {selectedRejection.eventName}</p>
+                  <p className="mb-1"><strong>Event Date:</strong> {selectedRejection.eventDate}</p>
+                  <p className="mb-1"><strong>Status:</strong> <span className="badge bg-danger">{selectedRejection.status}</span></p>
+                </div>
+                
+                <hr />
+                
+                <div className="alert alert-danger">
+                  <h6 className="alert-heading fw-bold">
+                    <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                    Rejected by: {selectedRejection.rejectorRole}
+                  </h6>
+                  <hr />
+                  <p className="mb-0"><strong>Rejection History:</strong></p>
+                  <ul className="mt-2 mb-0">
+                    {selectedRejection.rejections.map((rej, idx) => (
+                      <li key={idx}>
+                        <strong>{rej.role}:</strong> {rej.comments || "No comments provided"}
+                        <br />
+                        <small className="text-muted">
+                          {new Date(rej.decidedAt).toLocaleString()}
+                        </small>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <div className="mt-3">
+                  <p className="text-muted small">
+                    <strong>Next Steps:</strong> Please review the rejection comments and create a new request with the necessary modifications.
+                  </p>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowRejectionModal(false)}
+                >
+                  Close
                 </button>
               </div>
             </div>
