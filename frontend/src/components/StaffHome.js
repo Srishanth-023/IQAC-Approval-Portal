@@ -22,11 +22,11 @@ function StaffHome() {
   const [eventDate, setEventDate] = useState("");
   const [purpose, setPurpose] = useState("");
   const [report, setReport] = useState(null);
-  
+
   // Rejection details modal state
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [selectedRejection, setSelectedRejection] = useState(null);
-  
+
   // Edit request modal state
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
@@ -187,6 +187,11 @@ function StaffHome() {
   const submit = async (e) => {
     e.preventDefault();
 
+    console.log("Submit clicked!");
+    console.log("Event Name:", eventName);
+    console.log("Purpose:", purpose);
+    console.log("Report:", report);
+
     if (!report) {
       return toast.error("Please upload event report file");
     }
@@ -198,8 +203,11 @@ function StaffHome() {
     formData.append("purpose", purpose);
     formData.append("event_report", report);
 
+    console.log("Sending request to backend...");
+
     try {
       await createRequest(formData);
+      console.log("Request successful!");
       toast.success("Request submitted!");
 
       // clear form
@@ -210,12 +218,17 @@ function StaffHome() {
 
       loadRequests();
     } catch (err) {
+      console.log("Error caught:", err);
+      console.log("Error response:", err.response);
+      
       // Check if it's a duplicate event error
       if (err.response && err.response.data && err.response.data.error) {
         const errorMsg = err.response.data.error;
+        console.log("Error message:", errorMsg);
         
         // Show custom modal for duplicate events
         if (errorMsg.includes("already created") || errorMsg.includes("similar event")) {
+          console.log("Showing duplicate modal");
           setDuplicateMessage(errorMsg);
           setShowDuplicateModal(true);
         } else {
@@ -413,22 +426,16 @@ function StaffHome() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="modal-content border-0 shadow-lg">
-              {/* Header */}
               <div className="modal-header" style={{ backgroundColor: "#0d6efd", color: "white" }}>
-                <h5 className="modal-title fw-bold">
-                  ✏️ Edit & Resubmit Request
-                </h5>
+                <h5 className="modal-title fw-bold">✏️ Edit & Resubmit Request</h5>
                 <button
                   type="button"
                   className="btn-close btn-close-white"
                   onClick={() => setShowEditModal(false)}
                 ></button>
               </div>
-              
-              {/* Body */}
               <form onSubmit={handleSubmitEdit}>
                 <div className="modal-body">
-                  {/* Previous Status Info */}
                   <div className="alert alert-warning mb-3">
                     <small>
                       <b>Previous Status:</b> {editingRequest.overallStatus}
@@ -438,8 +445,6 @@ function StaffHome() {
                       </span>
                     </small>
                   </div>
-                  
-                  {/* Event Name */}
                   <div className="mb-3">
                     <label className="form-label fw-bold">Event Name</label>
                     <input
@@ -450,8 +455,6 @@ function StaffHome() {
                       required
                     />
                   </div>
-                  
-                  {/* Event Date */}
                   <div className="mb-3">
                     <label className="form-label fw-bold">Event Date</label>
                     <input
@@ -462,8 +465,6 @@ function StaffHome() {
                       required
                     />
                   </div>
-                  
-                  {/* Purpose */}
                   <div className="mb-3">
                     <label className="form-label fw-bold">Purpose of Event</label>
                     <textarea
@@ -475,12 +476,8 @@ function StaffHome() {
                       required
                     />
                   </div>
-                  
-                  {/* File Upload */}
                   <div className="mb-3">
-                    <label className="form-label fw-bold">
-                      Upload New Report (Optional)
-                    </label>
+                    <label className="form-label fw-bold">Upload New Report (Optional)</label>
                     <input
                       className="form-control"
                       type="file"
@@ -498,13 +495,9 @@ function StaffHome() {
                         }
                       }}
                     />
-                    <small className="text-muted">
-                      Leave empty to keep the existing file. Only PDF files accepted.
-                    </small>
+                    <small className="text-muted">Leave empty to keep the existing file.</small>
                   </div>
                 </div>
-                
-                {/* Footer */}
                 <div className="modal-footer border-0">
                   <button
                     type="button"
@@ -514,19 +507,8 @@ function StaffHome() {
                   >
                     Cancel
                   </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2"></span>
-                        Submitting...
-                      </>
-                    ) : (
-                      "Resubmit Request"
-                    )}
+                  <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                    {isSubmitting ? "Submitting..." : "Resubmit Request"}
                   </button>
                 </div>
               </form>
@@ -547,56 +529,39 @@ function StaffHome() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="modal-content border-0 shadow-lg">
-              {/* Header */}
               <div className="modal-header" style={{ backgroundColor: "#dc3545", color: "white" }}>
-                <h5 className="modal-title fw-bold">
-                  ⚠️ Request Rejected / Recreation Required
-                </h5>
+                <h5 className="modal-title fw-bold">⚠️ Rejection Details</h5>
                 <button
                   type="button"
                   className="btn-close btn-close-white"
                   onClick={() => setShowRejectionModal(false)}
                 ></button>
               </div>
-              
-              {/* Body */}
               <div className="modal-body">
-                {/* Event Info */}
                 <div className="mb-3 p-3 rounded" style={{ backgroundColor: "#f8f9fa" }}>
                   <h6 className="fw-bold text-dark mb-2">📋 Event Details</h6>
                   <p className="mb-1"><b>Event Name:</b> {selectedRejection.eventName}</p>
                   <p className="mb-0"><b>Event Date:</b> {selectedRejection.eventDate}</p>
                 </div>
-                
-                {/* Status */}
                 <div className="mb-3 p-3 rounded border border-danger" style={{ backgroundColor: "#fff5f5" }}>
                   <h6 className="fw-bold text-danger mb-2">🚫 Current Status</h6>
                   <p className="mb-0 fw-bold text-danger">{selectedRejection.status}</p>
                 </div>
-                
-                {/* Rejection Details */}
                 <div className="p-3 rounded" style={{ backgroundColor: "#fff3cd" }}>
-                  <h6 className="fw-bold text-dark mb-3">💬 Rejection / Recreation Details</h6>
-                  
+                  <h6 className="fw-bold text-dark mb-3">💬 Rejection Details</h6>
                   {selectedRejection.rejections && selectedRejection.rejections.length > 0 ? (
                     selectedRejection.rejections.map((rej, idx) => (
                       <div key={idx} className="card mb-2 border-0 shadow-sm">
                         <div className="card-body p-3">
                           <div className="d-flex align-items-center mb-2">
-                            <span className="badge bg-danger me-2" style={{ fontSize: "0.9rem" }}>
-                              {rej.role}
-                            </span>
+                            <span className="badge bg-danger me-2">{rej.role}</span>
                             <small className="text-muted">
                               {new Date(rej.decidedAt).toLocaleString()}
                             </small>
                           </div>
                           <div className="p-2 rounded" style={{ backgroundColor: "#f8f9fa" }}>
                             <b>Reason:</b>{" "}
-                            {rej.comments ? (
-                              <span className="text-dark">{rej.comments}</span>
-                            ) : (
-                              <i className="text-muted">No reason provided</i>
-                            )}
+                            {rej.comments || <i className="text-muted">No reason provided</i>}
                           </div>
                         </div>
                       </div>
@@ -604,17 +569,8 @@ function StaffHome() {
                   ) : selectedRejection.rejectorRole ? (
                     <div className="card border-0 shadow-sm">
                       <div className="card-body p-3">
-                        <div className="d-flex align-items-center mb-2">
-                          <span className="badge bg-danger me-2" style={{ fontSize: "0.9rem" }}>
-                            {selectedRejection.rejectorRole}
-                          </span>
-                          <small className="text-muted">Requested recreation</small>
-                        </div>
-                        <div className="p-2 rounded" style={{ backgroundColor: "#f8f9fa" }}>
-                          <i className="text-muted">
-                            Please contact {selectedRejection.rejectorRole} for detailed feedback.
-                          </i>
-                        </div>
+                        <span className="badge bg-danger me-2">{selectedRejection.rejectorRole}</span>
+                        <span className="text-muted">requested recreation</span>
                       </div>
                     </div>
                   ) : (
@@ -622,8 +578,6 @@ function StaffHome() {
                   )}
                 </div>
               </div>
-              
-              {/* Footer */}
               <div className="modal-footer border-0">
                 <button
                   className="btn btn-secondary px-4"
