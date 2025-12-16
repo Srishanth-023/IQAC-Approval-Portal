@@ -639,6 +639,39 @@ app.get("/api/admin/departments", requireAdmin, (req, res) => {
   res.json({ departments: DEPARTMENTS });
 });
 
+// 👉 Delete request (Admin)
+app.delete("/api/admin/delete-request/:id", requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const deletedRequest = await Request.findByIdAndDelete(id);
+    
+    if (!deletedRequest) {
+      return res.status(404).json({ error: "Request not found" });
+    }
+
+    res.json({ message: "Request deleted successfully" });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// 👉 Delete all requests (Admin)
+app.delete("/api/admin/delete-all-requests", requireAdmin, async (req, res) => {
+  try {
+    const result = await Request.deleteMany({});
+    
+    res.json({ 
+      message: "All requests deleted successfully", 
+      deletedCount: result.deletedCount 
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // ===============================
 // START SERVER
 // ===============================

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { adminFetchAllRequests, approvalLetterUrl } from "../api";
+import { adminFetchAllRequests, adminDeleteRequest, adminDeleteAllRequests, approvalLetterUrl } from "../api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
@@ -22,16 +22,64 @@ export default function AdminAllRequests() {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this request? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      await adminDeleteRequest(id, user.role);
+      toast.success("Request deleted successfully");
+      loadRequests(); // Reload the list
+    } catch (err) {
+      toast.error("Failed to delete request");
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (requests.length === 0) {
+      toast.warning("No requests to delete");
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to delete ALL ${requests.length} requests? This action cannot be undone!`)) {
+      return;
+    }
+
+    // Double confirmation for critical action
+    if (!window.confirm("Final confirmation: This will permanently delete all requests. Are you absolutely sure?")) {
+      return;
+    }
+
+    try {
+      const res = await adminDeleteAllRequests(user.role);
+      toast.success(`Successfully deleted ${res.data.deletedCount} requests`);
+      loadRequests(); // Reload the list
+    } catch (err) {
+      toast.error("Failed to delete all requests");
+    }
+  };
+
   return (
     <div className="container mt-5 pb-5">
       <h3 className="text-center mb-4">All Requests (Admin View)</h3>
 
-      <button
-        className="btn btn-secondary mb-3"
-        onClick={() => navigate("/admin/dashboard")}
-      >
-        ← Back to Dashboard
-      </button>
+      <div className="d-flex justify-content-between mb-3">
+        <button
+          className="btn btn-secondary"
+          onClick={() => navigate("/admin/dashboard")}
+        >
+          ← Back to Dashboard
+        </button>
+
+        <button
+          className="btn btn-danger"
+          onClick={handleDeleteAll}
+          disabled={requests.length === 0}
+        >
+          Delete All Requests
+        </button>
+      </div>
 
       <div className="card shadow p-4">
         <div className="table-responsive">
@@ -46,13 +94,14 @@ export default function AdminAllRequests() {
                 <th>Date</th>
                 <th>Status</th>
                 <th>Report</th>
+                <th>Actions</th>
               </tr>
             </thead>
 
             <tbody>
               {requests.length === 0 && (
                 <tr>
-                  <td colSpan="8" className="text-center text-muted py-3">
+                  <td colSpan="9" className="text-center text-muted py-3">
                     No requests found
                   </td>
                 </tr>
@@ -86,6 +135,14 @@ export default function AdminAllRequests() {
                     >
                       View Approval Letter
                     </a>
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => handleDelete(req._id)}
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}

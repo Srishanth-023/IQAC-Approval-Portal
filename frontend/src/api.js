@@ -112,4 +112,16 @@ export const adminUpdateHod = (department, data, role) =>
     headers: { "x-user-role": role },
   });
 
+// Delete Request
+export const adminDeleteRequest = (id, role) =>
+  API.delete(`/admin/delete-request/${id}`, {
+    headers: { "x-user-role": role },
+  });
+
+// Delete All Requests
+export const adminDeleteAllRequests = (role) =>
+  API.delete(`/admin/delete-all-requests`, {
+    headers: { "x-user-role": role },
+  });
+
 export default API;
