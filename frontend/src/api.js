@@ -51,6 +51,12 @@ export const approvalLetterUrl = (id) =>
   `${API.defaults.baseURL}/requests/${id}/approval-letter`;
 
 // =============================================
+// GET FRESH SIGNED URL FOR REPORT
+// =============================================
+export const getFreshReportUrl = (id) =>
+  API.get(`/requests/${id}/report-url`);
+
+// =============================================
 // ========== ADMIN APIs ==========
 // =============================================
 

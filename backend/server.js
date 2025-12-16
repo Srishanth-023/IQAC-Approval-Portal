@@ -94,8 +94,8 @@ async function getPresignedUrl(fileKey) {
     Key: key,
   });
   
-  // URL valid for 1 hour (3600 seconds)
-  const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
+  // URL valid for 7 days (604800 seconds)
+  const signedUrl = await getSignedUrl(s3, command, { expiresIn: 604800 });
   return signedUrl;
 }
 
@@ -386,6 +386,28 @@ app.get("/api/requests/:id", async (req, res) => {
       ...doc.toObject(),
       reportUrl,
     });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ===============================
+// GET FRESH SIGNED URL FOR REPORT
+// ===============================
+app.get("/api/requests/:id/report-url", async (req, res) => {
+  try {
+    const doc = await Request.findById(req.params.id);
+    if (!doc) return res.status(404).json({ error: "Request not found" });
+    
+    if (!doc.reportPath) {
+      return res.status(404).json({ error: "No report uploaded for this request" });
+    }
+
+    // Generate fresh signed URL
+    const reportUrl = await getPresignedUrl(doc.reportPath);
+    
+    res.json({ url: reportUrl });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Server error" });

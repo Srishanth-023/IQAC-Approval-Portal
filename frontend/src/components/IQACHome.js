@@ -3,6 +3,7 @@ import {
   fetchRequestsForRole,
   actOnRequest,
   approvalLetterUrl,
+  getFreshReportUrl,
 } from "../api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -50,6 +51,20 @@ function IQACHome() {
   useEffect(() => {
     loadRequests();
   }, []);
+
+  // ------------------------------------
+  // VIEW REPORT - Fetch fresh signed URL
+  // ------------------------------------
+  const handleViewReport = async (id) => {
+    try {
+      const res = await getFreshReportUrl(id);
+      if (res.data.url) {
+        window.open(res.data.url, "_blank");
+      }
+    } catch {
+      toast.error("Failed to load report");
+    }
+  };
 
   // ------------------------------------
   // COMMENT HANDLER
@@ -156,14 +171,12 @@ function IQACHome() {
 
               {/* VIEW REPORT FILE */}
               {req.reportUrl && (
-                <a
-                  href={req.reportUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2"
+                <button
+                  className="btn btn-link p-0 mt-2"
+                  onClick={() => handleViewReport(req._id)}
                 >
                   View Uploaded Report
-                </a>
+                </button>
               )}
 
               {/* SHOW APPROVAL REPORT WHEN COMPLETED */}

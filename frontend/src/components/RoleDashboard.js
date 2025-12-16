@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   fetchRequestsForRole,
   actOnRequest,
+  getFreshReportUrl,
 } from "../api";
 import { toast } from "react-toastify";
 import useDisableBack from "./useDisableBack";
@@ -47,6 +48,20 @@ function RoleDashboard() {
   useEffect(() => {
     loadRequests();
   }, []);
+
+  // ------------------------------------------
+  // VIEW REPORT - Fetch fresh signed URL
+  // ------------------------------------------
+  const handleViewReport = async (id) => {
+    try {
+      const res = await getFreshReportUrl(id);
+      if (res.data.url) {
+        window.open(res.data.url, "_blank");
+      }
+    } catch {
+      toast.error("Failed to load report");
+    }
+  };
 
   // ------------------------------------------
   // COMMENT HANDLER
@@ -156,9 +171,12 @@ function RoleDashboard() {
 
                 <td>
                   {r.reportUrl ? (
-                    <a href={r.reportUrl} target="_blank" rel="noreferrer">
+                    <button 
+                      className="btn btn-link p-0"
+                      onClick={() => handleViewReport(r._id)}
+                    >
                       View
-                    </a>
+                    </button>
                   ) : (
                     "No File"
                   )}

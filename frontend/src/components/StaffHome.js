@@ -3,6 +3,7 @@ import {
   fetchStaffRequests,
   createRequest,
   approvalLetterUrl,
+  getFreshReportUrl,
 } from "../api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -49,6 +50,20 @@ function StaffHome() {
   useEffect(() => {
     loadRequests();
   }, []);
+
+  // ----------------------------------------
+  // VIEW REPORT - Fetch fresh signed URL
+  // ----------------------------------------
+  const handleViewReport = async (id) => {
+    try {
+      const res = await getFreshReportUrl(id);
+      if (res.data.url) {
+        window.open(res.data.url, "_blank");
+      }
+    } catch {
+      toast.error("Failed to load report");
+    }
+  };
 
   // ----------------------------------------
   // DETERMINE CARD COLOR
@@ -225,14 +240,12 @@ function StaffHome() {
 
             {/* VIEW FILE */}
             {req.reportUrl && (
-              <a
+              <button
                 className="btn btn-secondary btn-sm mt-2 w-100"
-                href={req.reportUrl}
-                target="_blank"
-                rel="noreferrer"
+                onClick={() => handleViewReport(req._id)}
               >
                 View Uploaded File
-              </a>
+              </button>
             )}
 
             {/* GENERATE APPROVAL REPORT (only after completion) */}
