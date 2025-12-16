@@ -28,9 +28,9 @@ export const fetchStaffRequests = (staffId) =>
 // =============================================
 // IQAC / ROLE USERS: FETCH REQUESTS BY ROLE
 // =============================================
-export const fetchRequestsForRole = (role) =>
+export const fetchRequestsForRole = (role, department = null) =>
   API.get("/requests", {
-    params: { current_role: role },
+    params: { current_role: role, department },
   });
 
 // =============================================

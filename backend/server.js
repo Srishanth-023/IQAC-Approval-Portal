@@ -306,8 +306,8 @@ app.post("/api/requests", upload.single("event_report"), async (req, res) => {
       eventDate: event_date,
       purpose,
       reportPath: fileUrl,
-      currentRole: "IQAC",
-      overallStatus: "Waiting approval for IQAC",
+      currentRole: "HOD",
+      overallStatus: "Waiting approval for HOD",
       referenceNo: null,
       workflowRoles: [],
       approvals: [],
@@ -330,8 +330,16 @@ app.get("/api/requests", async (req, res) => {
     if (req.query.staffId) filter.staffId = req.query.staffId;
     if (req.query.current_role)
       filter.currentRole = req.query.current_role.toUpperCase();
+    
+    // If HOD is requesting, also filter by their department
+    if (req.query.current_role?.toUpperCase() === "HOD" && req.query.department) {
+      filter.department = req.query.department; // Direct match (departments are stored exactly as in enum)
+    }
+
+    console.log("GET /api/requests filter:", filter);
 
     const requests = await Request.find(filter).sort({ createdAt: -1 });
+    console.log("Found requests:", requests.length);
 
     // Generate pre-signed URLs for each request
     const requestsWithUrls = await Promise.all(
@@ -390,6 +398,15 @@ app.post("/api/requests/:id/action", async (req, res) => {
       decidedAt: now,
     });
 
+    // HOD special logic - after HOD approves, move to IQAC
+    if (role === "HOD" && action === "approve") {
+      doc.currentRole = "IQAC";
+      doc.overallStatus = "Waiting approval for IQAC";
+
+      await doc.save();
+      return res.json({ message: "HOD Approved, forwarded to IQAC" });
+    }
+
     // IQAC special logic
     if (role === "IQAC" && action === "approve") {
       doc.referenceNo = refNumber;
@@ -408,8 +425,14 @@ app.post("/api/requests/:id/action", async (req, res) => {
 
     // RECREATE logic
     if (action === "recreate") {
-      doc.currentRole = null;
-      doc.overallStatus = `${role} requested recreation`;
+      // If HOD recreates, send back to staff
+      if (role === "HOD") {
+        doc.currentRole = null;
+        doc.overallStatus = `HOD requested recreation`;
+      } else {
+        doc.currentRole = null;
+        doc.overallStatus = `${role} requested recreation`;
+      }
       doc.isCompleted = false;
 
       await doc.save();
@@ -446,7 +469,8 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
     const doc = await Request.findById(req.params.id);
     if (!doc) return res.status(404).send("Not found");
 
-    const flow = ["IQAC", ...(doc.workflowRoles || [])];
+    // Include HOD at the beginning of the flow
+    const flow = ["HOD", "IQAC", ...(doc.workflowRoles || [])];
 
     const rows = flow
       .map((r) => {

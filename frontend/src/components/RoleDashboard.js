@@ -35,7 +35,9 @@ function RoleDashboard() {
   // ------------------------------------------
   const loadRequests = async () => {
     try {
-      const res = await fetchRequestsForRole(role);
+      // If HOD, pass department to filter requests by their department
+      const department = role === "HOD" ? user?.department : null;
+      const res = await fetchRequestsForRole(role, department);
       setRequests(res.data);
     } catch {
       toast.error("Failed to load requests");
