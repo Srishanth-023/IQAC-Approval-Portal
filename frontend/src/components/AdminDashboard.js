@@ -189,6 +189,7 @@ export default function AdminDashboard() {
             <tr>
               <th>Department</th>
               <th>HOD Name</th>
+              <th>Password</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -199,6 +200,7 @@ export default function AdminDashboard() {
               <tr key={h.department}>
                 <td>{h.department}</td>
                 <td>{h.hod ? h.hod.name : "—"}</td>
+                <td>{h.hod ? h.hod.password : "—"}</td>
                 <td>
                   {h.hod ? (
                     <span className="badge bg-success">Assigned</span>
