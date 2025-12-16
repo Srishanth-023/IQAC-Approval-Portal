@@ -239,9 +239,14 @@ function StaffHome() {
             {isApproved && (
               <button
                 className="btn btn-success btn-sm mt-2 w-100"
-                onClick={() =>
-                  window.open(approvalLetterUrl(req._id), "_blank")
-                }
+                onClick={() => {
+                  const link = document.createElement("a");
+                  link.href = approvalLetterUrl(req._id);
+                  link.download = `Approval-Report-${req.refNumber || req._id}.pdf`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
               >
                 Generate Approval Report
               </button>
