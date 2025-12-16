@@ -8,7 +8,8 @@ const multer = require("multer");
 const dotenv = require("dotenv");
 const fs = require("fs");
 
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 dotenv.config();
 
@@ -71,7 +72,30 @@ async function uploadToS3(file) {
 
   await s3.send(new PutObjectCommand(params));
 
-  return `https://${process.env.AWS_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+  // Store only the key (not full URL) for generating pre-signed URLs later
+  return fileName;
+}
+
+// ===============================
+// FUNCTION: Generate Pre-signed URL for viewing files
+// ===============================
+async function getPresignedUrl(fileKey) {
+  if (!fileKey) return null;
+  
+  // If fileKey is a full URL, extract just the key
+  let key = fileKey;
+  if (fileKey.includes('.amazonaws.com/')) {
+    key = fileKey.split('.amazonaws.com/')[1];
+  }
+  
+  const command = new GetObjectCommand({
+    Bucket: process.env.AWS_BUCKET,
+    Key: key,
+  });
+  
+  // URL valid for 1 hour (3600 seconds)
+  const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
+  return signedUrl;
 }
 
 // ===============================
@@ -309,12 +333,16 @@ app.get("/api/requests", async (req, res) => {
 
     const requests = await Request.find(filter).sort({ createdAt: -1 });
 
-    res.json(
-      requests.map((r) => ({
-        ...r.toObject(),
-        reportUrl: r.reportPath || null,
-      }))
+    // Generate pre-signed URLs for each request
+    const requestsWithUrls = await Promise.all(
+      requests.map(async (r) => {
+        const obj = r.toObject();
+        obj.reportUrl = r.reportPath ? await getPresignedUrl(r.reportPath) : null;
+        return obj;
+      })
     );
+
+    res.json(requestsWithUrls);
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Server error" });
@@ -329,9 +357,12 @@ app.get("/api/requests/:id", async (req, res) => {
     const doc = await Request.findById(req.params.id);
     if (!doc) return res.status(404).json({ error: "Request not found" });
 
+    // Generate pre-signed URL for the report
+    const reportUrl = doc.reportPath ? await getPresignedUrl(doc.reportPath) : null;
+
     res.json({
       ...doc.toObject(),
-      reportUrl: doc.reportPath || null,
+      reportUrl,
     });
   } catch (e) {
     console.error(e);
