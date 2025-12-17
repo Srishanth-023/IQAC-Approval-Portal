@@ -235,9 +235,16 @@ export default function AdminAllRequests() {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="dashboard-footer">
-          <p>© 2025 KITE Group of Institutions. All rights reserved.</p>
+        {/* FOOTER */}
+        <div className="dashboard-footer fade-in">
+          <div className="dashboard-footer-content">
+            <div className="dashboard-footer-brand">
+              <span>IQAC Approval Portal</span>
+            </div>
+            <div className="dashboard-footer-text">
+              © 2025 KGiSL Institute of Technology. All rights reserved.
+            </div>
+          </div>
         </div>
       </div>
     </div>
