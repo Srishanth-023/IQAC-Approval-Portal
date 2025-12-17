@@ -1,33 +1,66 @@
 import React from "react";
+import "./Dashboard.css";
 
 function IQACWorkflowSummary({ referenceNo, selectedRoles }) {
   return (
-    <div className="card p-3 mt-2 border-primary shadow-sm">
-      <h5 className="text-primary">IQAC Approval Summary</h5>
+    <div style={{ 
+      background: "linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%)",
+      padding: "1.5rem",
+      borderRadius: "0.75rem",
+      border: "2px solid #3b82f6",
+      marginTop: "1rem",
+      boxShadow: "0 4px 12px rgba(59, 130, 246, 0.15)"
+    }}>
+      <h5 style={{ color: "#1e3a8a", fontWeight: "700", marginBottom: "1rem", fontSize: "1.1rem" }}>
+        📋 IQAC Approval Summary
+      </h5>
 
-      <p className="mb-1">
-        <b>Reference Number:</b> {referenceNo || "Not assigned"}
+      <p style={{ color: "#475569", marginBottom: "0.75rem" }}>
+        <strong style={{ color: "#1e3a8a" }}>Reference Number:</strong>{" "}
+        <span style={{ 
+          background: referenceNo ? "#3b82f6" : "#ef4444",
+          color: "white",
+          padding: "0.25rem 0.75rem",
+          borderRadius: "0.5rem",
+          fontSize: "0.9rem",
+          fontWeight: "600"
+        }}>
+          {referenceNo || "Not assigned"}
+        </span>
       </p>
 
-      <p className="mb-1">
-        <b>Selected Workflow:</b>
+      <p style={{ color: "#1e3a8a", fontWeight: "600", marginBottom: "0.5rem" }}>
+        Selected Workflow:
       </p>
 
       {selectedRoles.length === 0 ? (
-        <p className="text-danger">No roles selected.</p>
+        <p style={{ color: "#ef4444", fontStyle: "italic" }}>⚠️ No roles selected.</p>
       ) : (
-        <ul>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
           {selectedRoles.map((r, i) => (
-            <li key={i}>{r}</li>
+            <span 
+              key={i}
+              className="badge-custom badge-approved"
+              style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}
+            >
+              {i + 1}. {r}
+            </span>
           ))}
-        </ul>
+        </div>
       )}
 
-      <small className="text-muted">
-        Roles will follow default sequence:
+      <p style={{ 
+        color: "#64748b", 
+        fontSize: "0.8rem", 
+        marginTop: "1rem",
+        padding: "0.75rem",
+        background: "rgba(255,255,255,0.7)",
+        borderRadius: "0.5rem"
+      }}>
+        💡 Roles will follow default sequence:
         <br />
-        HOD → Principal → Director → AO → CEO
-      </small>
+        <strong>HOD → Principal → Director → AO → CEO</strong>
+      </p>
     </div>
   );
 }

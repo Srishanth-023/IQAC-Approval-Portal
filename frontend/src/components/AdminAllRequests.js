@@ -2,12 +2,15 @@ import React, { useEffect, useState } from "react";
 import { adminFetchAllRequests, adminDeleteRequest, adminDeleteAllRequests, approvalLetterUrl } from "../api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import "./Dashboard.css";
+import logo from '../assets/kite-logo.png';
 
 export default function AdminAllRequests() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
 
   const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadRequests();
@@ -15,10 +18,13 @@ export default function AdminAllRequests() {
 
   const loadRequests = async () => {
     try {
+      setLoading(true);
       const res = await adminFetchAllRequests(user.role);
       setRequests(res.data);
     } catch (err) {
       toast.error("Failed to load all requests");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -30,7 +36,7 @@ export default function AdminAllRequests() {
     try {
       await adminDeleteRequest(id, user.role);
       toast.success("Request deleted successfully");
-      loadRequests(); // Reload the list
+      loadRequests();
     } catch (err) {
       toast.error("Failed to delete request");
     }
@@ -46,7 +52,6 @@ export default function AdminAllRequests() {
       return;
     }
 
-    // Double confirmation for critical action
     if (!window.confirm("Final confirmation: This will permanently delete all requests. Are you absolutely sure?")) {
       return;
     }
@@ -54,98 +59,120 @@ export default function AdminAllRequests() {
     try {
       const res = await adminDeleteAllRequests(user.role);
       toast.success(`Successfully deleted ${res.data.deletedCount} requests`);
-      loadRequests(); // Reload the list
+      loadRequests();
     } catch (err) {
       toast.error("Failed to delete all requests");
     }
   };
 
   return (
-    <div className="container mt-5 pb-5">
-      <h3 className="text-center mb-4">All Requests (Admin View)</h3>
+    <div className="dashboard-page">
+      <div className="dashboard-wrapper">
+        {/* Header */}
+        <div className="dashboard-header">
+          <div className="header-content">
+            <img src={logo} alt="Logo" className="header-logo" />
+            <div className="header-text">
+              <h1>IQAC Approval Portal</h1>
+              <p>Admin Request Management</p>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+            <button className="btn-secondary-custom" onClick={() => navigate("/admin/dashboard")}>
+              ← Back to Dashboard
+            </button>
+          </div>
+        </div>
 
-      <div className="d-flex justify-content-between mb-3">
-        <button
-          className="btn btn-secondary"
-          onClick={() => navigate("/admin/dashboard")}
-        >
-          ← Back to Dashboard
-        </button>
+        {/* Main Content */}
+        <div className="dashboard-card">
+          <div className="card-header">
+            <h3>📋 All Requests (Admin View)</h3>
+            <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+              <span className="badge-custom badge-pending">{requests.length} Total</span>
+              <button
+                className="btn-danger-custom"
+                onClick={handleDeleteAll}
+                disabled={requests.length === 0}
+                style={{ opacity: requests.length === 0 ? 0.5 : 1 }}
+              >
+                🗑️ Delete All Requests
+              </button>
+            </div>
+          </div>
 
-        <button
-          className="btn btn-danger"
-          onClick={handleDeleteAll}
-          disabled={requests.length === 0}
-        >
-          Delete All Requests
-        </button>
-      </div>
+          {loading ? (
+            <div className="loading-spinner">
+              <div className="spinner"></div>
+              <p>Loading requests...</p>
+            </div>
+          ) : (
+            <div className="table-container">
+              <table className="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Reference No</th>
+                    <th>Staff</th>
+                    <th>Department</th>
+                    <th>Event</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Report</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {requests.length === 0 ? (
+                    <tr>
+                      <td colSpan="9" className="text-center" style={{ padding: "2rem", color: "#64748b" }}>
+                        No requests found
+                      </td>
+                    </tr>
+                  ) : (
+                    requests.map((req, index) => (
+                      <tr key={req._id}>
+                        <td><strong>{index + 1}</strong></td>
+                        <td>{req.referenceNo || "-"}</td>
+                        <td>{req.staffName}</td>
+                        <td>{req.department}</td>
+                        <td>{req.eventName}</td>
+                        <td>{req.eventDate}</td>
+                        <td>
+                          <span className={req.isCompleted ? "badge-custom badge-approved" : "badge-custom badge-pending"}>
+                            {req.overallStatus}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            className="btn-primary-custom"
+                            style={{ fontSize: "0.8rem", padding: "0.4rem 0.8rem" }}
+                            onClick={() => window.open(approvalLetterUrl(req._id), "_blank")}
+                          >
+                            📄 View Letter
+                          </button>
+                        </td>
+                        <td>
+                          <button
+                            className="btn-danger-custom"
+                            style={{ fontSize: "0.8rem", padding: "0.4rem 0.8rem" }}
+                            onClick={() => handleDelete(req._id)}
+                          >
+                            🗑️ Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
 
-      <div className="card shadow p-4">
-        <div className="table-responsive">
-          <table className="table table-bordered table-hover">
-            <thead className="table-dark">
-              <tr>
-                <th>#</th>
-                <th>Reference No</th>
-                <th>Staff</th>
-                <th>Department</th>
-                <th>Event</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Report</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {requests.length === 0 && (
-                <tr>
-                  <td colSpan="9" className="text-center text-muted py-3">
-                    No requests found
-                  </td>
-                </tr>
-              )}
-
-              {requests.map((req, index) => (
-                <tr key={req._id}>
-                  <td>{index + 1}</td>
-                  <td>{req.referenceNo || "-"}</td>
-                  <td>{req.staffName}</td>
-                  <td>{req.department}</td>
-                  <td>{req.eventName}</td>
-                  <td>{req.eventDate}</td>
-                  <td>
-                    <span
-                      className={
-                        req.isCompleted
-                          ? "badge bg-success"
-                          : "badge bg-warning text-dark"
-                      }
-                    >
-                      {req.overallStatus}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-primary btn-sm"
-                      onClick={() => window.open(approvalLetterUrl(req._id), "_blank")}
-                    >
-                      View Approval Letter
-                    </button>
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleDelete(req._id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Footer */}
+        <div className="dashboard-footer">
+          <p>© 2025 KITE Group of Institutions. All rights reserved.</p>
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./Dashboard.css";
 
 const ROLES = ["HOD", "PRINCIPAL", "DIRECTOR", "AO", "CEO"];
 
@@ -44,83 +45,99 @@ function ActionPopup({ role, request, onSubmit, onClose }) {
   };
 
   return (
-    <div className="modal show" style={{ display: "block", background: "rgba(0,0,0,0.5)" }}>
-      <div className="modal-dialog">
-        <div className="modal-content">
+    <div className="modal-overlay">
+      <div className="modal-container" style={{ maxWidth: "500px" }}>
+        <div className="modal-header-custom">
+          <h3>⚡ {role} - Action for Request #{request.id}</h3>
+          <button className="modal-close-btn" onClick={onClose}>×</button>
+        </div>
 
-          <div className="modal-header">
-            <h5>{role} - Action for Request #{request.id}</h5>
-            <button className="btn-close" onClick={onClose} />
-          </div>
-
-          <div className="modal-body">
-            {/* Action Selection */}
-            <label className="form-label fw-bold">Select Action</label>
+        <div className="modal-body-custom">
+          {/* Action Selection */}
+          <div className="form-group-custom">
+            <label className="form-label-custom" style={{ fontWeight: "600" }}>Select Action</label>
             <select
-              className="form-select mb-3"
+              className="form-input-custom"
               value={action}
               onChange={(e) => setAction(e.target.value)}
             >
-              <option value="approve">Approve</option>
-              <option value="recreate">Recreate</option>
+              <option value="approve">✅ Approve</option>
+              <option value="recreate">🔄 Recreate</option>
             </select>
+          </div>
 
-            {/* IQAC-specific UI */}
-            {isIQAC && action === "approve" && (
-              <>
-                <div className="mb-3">
-                  <label className="form-label fw-bold">
-                    Reference Number (8 Alphanumeric)
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    maxLength="8"
-                    value={refNo}
-                    onChange={(e) => setRefNo(e.target.value)}
-                  />
-                </div>
+          {/* IQAC-specific UI */}
+          {isIQAC && action === "approve" && (
+            <>
+              <div className="form-group-custom">
+                <label className="form-label-custom" style={{ fontWeight: "600" }}>
+                  Reference Number (8 Alphanumeric)
+                </label>
+                <input
+                  type="text"
+                  className="form-input-custom"
+                  maxLength="8"
+                  value={refNo}
+                  onChange={(e) => setRefNo(e.target.value)}
+                  placeholder="e.g., IQAC2024"
+                />
+              </div>
 
-                <div className="mb-2">
-                  <label className="form-label fw-bold">
-                    Select Workflow Roles
-                  </label>
+              <div className="form-group-custom">
+                <label className="form-label-custom" style={{ fontWeight: "600" }}>
+                  Select Workflow Roles
+                </label>
+                <div style={{ 
+                  background: "#f8fafc", 
+                  padding: "1rem", 
+                  borderRadius: "0.5rem",
+                  border: "1px solid #e2e8f0"
+                }}>
                   {ROLES.map((r) => (
-                    <div key={r}>
+                    <label key={r} style={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: "0.5rem",
+                      padding: "0.5rem 0",
+                      cursor: "pointer",
+                      color: "#475569"
+                    }}>
                       <input
                         type="checkbox"
                         checked={selectedRoles.includes(r)}
                         onChange={() => toggleRole(r)}
-                      />{" "}
-                      {r}
-                    </div>
+                        style={{ width: "18px", height: "18px", accentColor: "#3b82f6" }}
+                      />
+                      <span>{r}</span>
+                    </label>
                   ))}
-                  <small className="text-muted">
-                    Order is automatic: HOD → Principal → Director → AO → CEO
-                  </small>
                 </div>
-              </>
-            )}
+                <small style={{ color: "#64748b", fontSize: "0.8rem", marginTop: "0.5rem", display: "block" }}>
+                  Order is automatic: HOD → Principal → Director → AO → CEO
+                </small>
+              </div>
+            </>
+          )}
 
-            {/* Comments */}
-            <div className="mb-3">
-              <label className="form-label fw-bold">Comments (optional)</label>
-              <textarea
-                className="form-control"
-                value={comments}
-                onChange={(e) => setComments(e.target.value)}
-                rows="2"
-              />
-            </div>
+          {/* Comments */}
+          <div className="form-group-custom">
+            <label className="form-label-custom" style={{ fontWeight: "600" }}>Comments (optional)</label>
+            <textarea
+              className="form-input-custom"
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              rows="3"
+              placeholder="Add any comments or notes..."
+              style={{ resize: "vertical" }}
+            />
           </div>
+        </div>
 
-          <div className="modal-footer">
-            <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-            <button className="btn btn-success" onClick={handleSubmit}>
-              Submit Action
-            </button>
-          </div>
-
+        <div className="modal-footer-custom">
+          <button className="btn-secondary-custom" onClick={onClose}>Cancel</button>
+          <button className="btn-success-custom" onClick={handleSubmit}>
+            ✅ Submit Action
+          </button>
         </div>
       </div>
     </div>

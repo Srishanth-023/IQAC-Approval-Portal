@@ -1,15 +1,23 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { fetchAllRequests } from "../api";
+import "./Dashboard.css";
+import logo from '../assets/kite-logo.png';
 
 function AllRequests() {
+  const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const load = async () => {
     try {
+      setLoading(true);
       const res = await fetchAllRequests();
       setRequests(res.data?.requests || []);
     } catch (err) {
       console.error("Error fetching all requests:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -17,41 +25,91 @@ function AllRequests() {
     load();
   }, []);
 
-  return (
-    <div className="container mt-4">
-      <h2>All Requests</h2>
-      <div className="table-responsive mt-3">
-        <table className="table table-bordered">
-          <thead className="table-dark">
-            <tr>
-              <th>ID</th>
-              <th>Event</th>
-              <th>Staff</th>
-              <th>Date</th>
-              <th>Status</th>
-            </tr>
-          </thead>
+  const getStatusBadge = (status) => {
+    const statusLower = status?.toLowerCase() || "";
+    if (statusLower.includes("approved") || statusLower.includes("completed")) {
+      return "badge-custom badge-approved";
+    } else if (statusLower.includes("reject")) {
+      return "badge-custom badge-rejected";
+    } else if (statusLower.includes("pending")) {
+      return "badge-custom badge-pending";
+    }
+    return "badge-custom badge-pending";
+  };
 
-          <tbody>
-            {requests.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="text-center">
-                  No requests found
-                </td>
-              </tr>
-            ) : (
-              requests.map((r) => (
-                <tr key={r.id}>
-                  <td>{r.id}</td>
-                  <td>{r.event_name}</td>
-                  <td>{r.name}</td>
-                  <td>{r.created_time}</td>
-                  <td>{r.status}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+  return (
+    <div className="dashboard-page">
+      <div className="dashboard-wrapper">
+        {/* Header */}
+        <div className="dashboard-header">
+          <div className="header-content">
+            <img src={logo} alt="Logo" className="header-logo" />
+            <div className="header-text">
+              <h1>IQAC Approval Portal</h1>
+              <p>All Requests Overview</p>
+            </div>
+          </div>
+          <button className="btn-secondary-custom" onClick={() => navigate(-1)}>
+            ← Back
+          </button>
+        </div>
+
+        {/* Main Content */}
+        <div className="dashboard-card">
+          <div className="card-header">
+            <h3>📋 All Requests</h3>
+            <span className="badge-custom badge-pending">{requests.length} Total</span>
+          </div>
+
+          {loading ? (
+            <div className="loading-spinner">
+              <div className="spinner"></div>
+              <p>Loading requests...</p>
+            </div>
+          ) : (
+            <div className="table-container">
+              <table className="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Event</th>
+                    <th>Staff</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {requests.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="text-center" style={{ padding: "2rem", color: "#64748b" }}>
+                        No requests found
+                      </td>
+                    </tr>
+                  ) : (
+                    requests.map((r) => (
+                      <tr key={r.id}>
+                        <td><strong>{r.id}</strong></td>
+                        <td>{r.event_name}</td>
+                        <td>{r.name}</td>
+                        <td>{r.created_time}</td>
+                        <td>
+                          <span className={getStatusBadge(r.status)}>
+                            {r.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="dashboard-footer">
+          <p>© 2025 KITE Group of Institutions. All rights reserved.</p>
+        </div>
       </div>
     </div>
   );

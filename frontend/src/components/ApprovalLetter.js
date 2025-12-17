@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { approvalLetterUrl } from "../api";
+import "./Dashboard.css";
+import logo from '../assets/kite-logo.png';
 
 function ApprovalLetter() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [url, setUrl] = useState("");
 
   useEffect(() => {
@@ -18,33 +21,60 @@ function ApprovalLetter() {
   };
 
   return (
-    <div className="container mt-5 text-center">
-      <h2 className="fw-bold text-primary mb-4">
-        Final Approval Report
-      </h2>
-
-      {url && (
-        <>
-          <iframe
-            src={url}
-            title="Approval Letter"
-            width="100%"
-            height="600px"
-            style={{
-              border: "2px solid #ccc",
-              borderRadius: "12px",
-              boxShadow: "0px 0px 6px rgba(0,0,0,0.1)",
-            }}
-          ></iframe>
-
-          <button
-            className="btn btn-success mt-4"
-            onClick={downloadReport}
-          >
-            Download Report
+    <div className="dashboard-page">
+      <div className="dashboard-wrapper">
+        {/* Header */}
+        <div className="dashboard-header">
+          <div className="header-content">
+            <img src={logo} alt="Logo" className="header-logo" />
+            <div className="header-text">
+              <h1>IQAC Approval Portal</h1>
+              <p>Final Approval Report</p>
+            </div>
+          </div>
+          <button className="btn-secondary-custom" onClick={() => navigate(-1)}>
+            ← Back
           </button>
-        </>
-      )}
+        </div>
+
+        {/* Main Content */}
+        <div className="dashboard-card">
+          <div className="card-header" style={{ justifyContent: "center" }}>
+            <h3>📄 Final Approval Report</h3>
+          </div>
+
+          {url && (
+            <div style={{ padding: "1.5rem" }}>
+              <iframe
+                src={url}
+                title="Approval Letter"
+                width="100%"
+                height="600px"
+                style={{
+                  border: "2px solid #e2e8f0",
+                  borderRadius: "0.75rem",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                }}
+              ></iframe>
+
+              <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
+                <button
+                  className="btn-success-custom"
+                  onClick={downloadReport}
+                  style={{ padding: "0.75rem 2rem" }}
+                >
+                  📥 Download Report
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="dashboard-footer">
+          <p>© 2025 KITE Group of Institutions. All rights reserved.</p>
+        </div>
+      </div>
     </div>
   );
 }

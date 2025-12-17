@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
+import "./Dashboard.css";
 
 const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
   const [formValues, setFormValues] = useState({
@@ -20,10 +21,9 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
     if (name === "event_report") {
       const file = files[0];
       if (file) {
-        // Check if file is PDF
         if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
           toast.error("Only PDF files are allowed. Please upload a PDF file.");
-          e.target.value = ""; // Clear the input
+          e.target.value = "";
           setFormValues((prev) => ({ ...prev, event_report: null }));
           return;
         }
@@ -68,114 +68,114 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
   };
 
   return (
-    <div className="modal show" style={{ display: "block", background: "rgba(0,0,0,0.4)" }}>
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <form onSubmit={handleSubmit}>
-            <div className="modal-header">
-              <h5 className="modal-title">Create Event Request</h5>
-              <button type="button" className="btn-close" onClick={onClose} />
+    <div className="modal-overlay">
+      <div className="modal-container" style={{ maxWidth: "500px" }}>
+        <div className="modal-header-custom">
+          <h3>📝 Create Event Request</h3>
+          <button className="modal-close-btn" onClick={onClose}>×</button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body-custom">
+            <div className="form-group-custom">
+              <label className="form-label-custom">Event Name</label>
+              <input
+                type="text"
+                className="form-input-custom"
+                name="event_name"
+                value={formValues.event_name}
+                onChange={handleChange}
+                placeholder="Enter event name"
+              />
+              {errors.event_name && (
+                <small style={{ color: "#ef4444", fontSize: "0.8rem" }}>{errors.event_name}</small>
+              )}
             </div>
 
-            <div className="modal-body">
-              <div className="mb-3">
-                <label className="form-label">Event Name</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="event_name"
-                  value={formValues.event_name}
-                  onChange={handleChange}
-                />
-                {errors.event_name && (
-                  <small className="text-danger">{errors.event_name}</small>
-                )}
-              </div>
+            <div className="form-group-custom">
+              <label className="form-label-custom">Event Date</label>
+              <input
+                type="date"
+                className="form-input-custom"
+                name="event_date"
+                value={formValues.event_date}
+                onChange={handleChange}
+                min={new Date().toISOString().split("T")[0]}
+              />
+              {errors.event_date && (
+                <small style={{ color: "#ef4444", fontSize: "0.8rem" }}>{errors.event_date}</small>
+              )}
+            </div>
 
-              <div className="mb-3">
-                <label className="form-label">Event Date</label>
-                <input
-                  type="date"
-                  className="form-control"
-                  name="event_date"
-                  value={formValues.event_date}
-                  onChange={handleChange}
-                  min={new Date().toISOString().split("T")[0]}
-                />
-                {errors.event_date && (
-                  <small className="text-danger">{errors.event_date}</small>
-                )}
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label">Time In</label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div className="form-group-custom">
+                <label className="form-label-custom">Time In</label>
                 <input
                   type="time"
-                  className="form-control"
+                  className="form-input-custom"
                   name="time_in"
                   value={formValues.time_in}
                   onChange={handleChange}
                 />
                 {errors.time_in && (
-                  <small className="text-danger">{errors.time_in}</small>
+                  <small style={{ color: "#ef4444", fontSize: "0.8rem" }}>{errors.time_in}</small>
                 )}
               </div>
 
-              <div className="mb-3">
-                <label className="form-label">Time Out</label>
+              <div className="form-group-custom">
+                <label className="form-label-custom">Time Out</label>
                 <input
                   type="time"
-                  className="form-control"
+                  className="form-input-custom"
                   name="time_out"
                   value={formValues.time_out}
                   onChange={handleChange}
                 />
                 {errors.time_out && (
-                  <small className="text-danger">{errors.time_out}</small>
+                  <small style={{ color: "#ef4444", fontSize: "0.8rem" }}>{errors.time_out}</small>
                 )}
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label">Purpose</label>
-                <textarea
-                  className="form-control"
-                  name="purpose"
-                  rows="2"
-                  value={formValues.purpose}
-                  onChange={handleChange}
-                />
-                {errors.purpose && (
-                  <small className="text-danger">{errors.purpose}</small>
-                )}
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label">Event Report (optional, PDF only)</label>
-                <input
-                  type="file"
-                  className="form-control"
-                  name="event_report"
-                  accept=".pdf,application/pdf"
-                  onChange={handleChange}
-                />
-                <small className="text-muted">Only PDF files are accepted</small>
               </div>
             </div>
 
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={onClose}
-              >
-                Close
-              </button>
-              <button type="submit" className="btn btn-primary">
-                Create Request
-              </button>
+            <div className="form-group-custom">
+              <label className="form-label-custom">Purpose</label>
+              <textarea
+                className="form-input-custom"
+                name="purpose"
+                rows="3"
+                value={formValues.purpose}
+                onChange={handleChange}
+                placeholder="Enter the purpose of the event"
+                style={{ resize: "vertical" }}
+              />
+              {errors.purpose && (
+                <small style={{ color: "#ef4444", fontSize: "0.8rem" }}>{errors.purpose}</small>
+              )}
             </div>
-          </form>
-        </div>
+
+            <div className="form-group-custom">
+              <label className="form-label-custom">Event Report (optional, PDF only)</label>
+              <input
+                type="file"
+                className="form-input-custom"
+                name="event_report"
+                accept=".pdf,application/pdf"
+                onChange={handleChange}
+                style={{ padding: "0.6rem" }}
+              />
+              <small style={{ color: "#64748b", fontSize: "0.8rem" }}>Only PDF files are accepted</small>
+            </div>
+          </div>
+
+          <div className="modal-footer-custom">
+            <button type="button" className="btn-secondary-custom" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary-custom">
+              ✅ Create Request
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
