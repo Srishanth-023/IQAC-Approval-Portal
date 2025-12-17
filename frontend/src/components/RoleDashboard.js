@@ -180,22 +180,24 @@ function RoleDashboard() {
       {/* FILTER SECTION */}
       <div className="card shadow p-3 mb-3">
         <div className="row g-3">
-          <div className="col-md-4">
-            <label className="form-label fw-bold">Filter by Department</label>
-            <select
-              className="form-select"
-              value={filterDepartment}
-              onChange={(e) => setFilterDepartment(e.target.value)}
-            >
-              <option value="">All Departments</option>
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-md-4">
+          {role !== "HOD" && (
+            <div className="col-md-4">
+              <label className="form-label fw-bold">Filter by Department</label>
+              <select
+                className="form-select"
+                value={filterDepartment}
+                onChange={(e) => setFilterDepartment(e.target.value)}
+              >
+                <option value="">All Departments</option>
+                {departments.map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className={role === "HOD" ? "col-md-8" : "col-md-4"}>
             <label className="form-label fw-bold">Filter by Event Name</label>
             <input
               type="text"
@@ -205,9 +207,10 @@ function RoleDashboard() {
               onChange={(e) => setFilterEventName(e.target.value)}
             />
           </div>
-          <div className="col-md-4 d-flex align-items-end">
+          <div className={role === "HOD" ? "col-md-4" : "col-md-4"}>
             <button
               className="btn btn-secondary w-100"
+              style={{ marginTop: role === "HOD" ? "32px" : "0" }}
               onClick={() => {
                 setFilterDepartment("");
                 setFilterEventName("");
