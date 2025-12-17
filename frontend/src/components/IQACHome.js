@@ -107,14 +107,14 @@ function IQACHome() {
     const refNumber = refNumbers[id] || "";
     const flowRoles = workflows[id] || [];
 
-    // Reference number must be exactly 8 digits
-    if (!/^\d{8}$/.test(refNumber)) {
-      return toast.error("Reference number must be exactly 8 digits (numbers only).");
+    // Reference number must be exactly 8 alphanumeric characters
+    if (!/^[A-Z0-9]{8}$/.test(refNumber)) {
+      return toast.error("Reference number must be exactly 8 characters (letters and numbers only).");
     }
 
     // Check if reference number is duplicate
     if (refWarnings[id]) {
-      return toast.error("Cannot approve: Reference number is already in use. Please use a unique number.");
+      return toast.error("Cannot approve: Reference number is already in use. Please use a unique reference.");
     }
 
     // At least one next approver required
@@ -226,16 +226,16 @@ function IQACHome() {
                   <hr />
 
                   {/* REFERENCE NO */}
-                  <label className="fw-bold">Reference Number (8 digits only)</label>
+                  <label className="fw-bold">Reference Number (8 characters)</label>
                   <input
                     type="text"
                     className={`form-control ${refWarnings[req._id] ? 'border-warning' : ''}`}
                     maxLength="8"
-                    placeholder="Enter 8 digit number"
+                    placeholder="Enter 8 character reference"
                     value={refNumbers[req._id] || ""}
                     onChange={(e) => {
-                      // Only allow numbers
-                      const value = e.target.value.replace(/[^0-9]/g, "");
+                      // Only allow alphanumeric characters (letters and numbers)
+                      const value = e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
                       setRefNumbers((prev) => ({
                         ...prev,
                         [req._id]: value,
@@ -243,19 +243,13 @@ function IQACHome() {
                       // Check uniqueness when user types
                       checkRefNumberUniqueness(value, req._id);
                     }}
-                    onKeyPress={(e) => {
-                      // Prevent non-numeric input
-                      if (!/[0-9]/.test(e.key)) {
-                        e.preventDefault();
-                      }
-                    }}
                   />
                   {refWarnings[req._id] ? (
                     <small className="text-warning d-block mb-2">
                       <strong>{refWarnings[req._id]}</strong>
                     </small>
                   ) : (
-                    <small className="text-muted d-block mb-2">Only numbers allowed (e.g., 12345678)</small>
+                    <small className="text-muted d-block mb-2">Letters and numbers only, 8 characters (e.g., AB123456)</small>
                   )}
 
                   {/* WORKFLOW ROLES */}
