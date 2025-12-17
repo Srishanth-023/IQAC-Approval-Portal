@@ -10,12 +10,9 @@ export default function AdminAllRequests() {
   const user = JSON.parse(localStorage.getItem("user"));
 
   const [requests, setRequests] = useState([]);
-<<<<<<< HEAD
   const [loading, setLoading] = useState(true);
-=======
   const [filterDepartment, setFilterDepartment] = useState("");
   const [filterEventName, setFilterEventName] = useState("");
->>>>>>> bae7cf956ba50e58851e1b351b5c8482c2718ba9
 
   useEffect(() => {
     loadRequests();
@@ -99,12 +96,57 @@ export default function AdminAllRequests() {
           </div>
         </div>
 
+        {/* Filter Section */}
+        <div className="dashboard-card" style={{ marginBottom: "1rem" }}>
+          <div className="card-header">
+            <h3>🔍 Filter Requests</h3>
+          </div>
+          <div style={{ padding: "1rem", display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "flex-end" }}>
+            <div className="form-group-custom" style={{ flex: "1", minWidth: "200px", marginBottom: 0 }}>
+              <label className="form-label-custom">Filter by Department</label>
+              <select
+                className="form-input-custom"
+                value={filterDepartment}
+                onChange={(e) => setFilterDepartment(e.target.value)}
+              >
+                <option value="">All Departments</option>
+                {departments.map((dept) => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group-custom" style={{ flex: "1", minWidth: "200px", marginBottom: 0 }}>
+              <label className="form-label-custom">Filter by Event Name</label>
+              <input
+                type="text"
+                className="form-input-custom"
+                placeholder="Search event name..."
+                value={filterEventName}
+                onChange={(e) => setFilterEventName(e.target.value)}
+              />
+            </div>
+            <button
+              className="btn-secondary-custom"
+              onClick={() => {
+                setFilterDepartment("");
+                setFilterEventName("");
+              }}
+              style={{ height: "fit-content" }}
+            >
+              Clear Filters
+            </button>
+          </div>
+          <div style={{ padding: "0 1rem 1rem", color: "#64748b", fontSize: "0.875rem" }}>
+            Showing {filteredRequests.length} of {requests.length} requests
+          </div>
+        </div>
+
         {/* Main Content */}
         <div className="dashboard-card">
           <div className="card-header">
             <h3>📋 All Requests (Admin View)</h3>
             <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-              <span className="badge-custom badge-pending">{requests.length} Total</span>
+              <span className="badge-custom badge-pending">{filteredRequests.length} Shown</span>
               <button
                 className="btn-danger-custom"
                 onClick={handleDeleteAll}
@@ -138,14 +180,14 @@ export default function AdminAllRequests() {
                   </tr>
                 </thead>
                 <tbody>
-                  {requests.length === 0 ? (
+                  {filteredRequests.length === 0 ? (
                     <tr>
                       <td colSpan="9" className="text-center" style={{ padding: "2rem", color: "#64748b" }}>
                         No requests found
                       </td>
                     </tr>
                   ) : (
-                    requests.map((req, index) => (
+                    filteredRequests.map((req, index) => (
                       <tr key={req._id}>
                         <td><strong>{index + 1}</strong></td>
                         <td>{req.referenceNo || "-"}</td>
@@ -185,124 +227,9 @@ export default function AdminAllRequests() {
           )}
         </div>
 
-<<<<<<< HEAD
         {/* Footer */}
         <div className="dashboard-footer">
           <p>© 2025 KITE Group of Institutions. All rights reserved.</p>
-=======
-      {/* FILTER SECTION */}
-      <div className="card shadow p-3 mb-3">
-        <div className="row g-3">
-          <div className="col-md-4">
-            <label className="form-label fw-bold">Filter by Department</label>
-            <select
-              className="form-select"
-              value={filterDepartment}
-              onChange={(e) => setFilterDepartment(e.target.value)}
-            >
-              <option value="">All Departments</option>
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-md-4">
-            <label className="form-label fw-bold">Filter by Event Name</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Search event name..."
-              value={filterEventName}
-              onChange={(e) => setFilterEventName(e.target.value)}
-            />
-          </div>
-          <div className="col-md-4 d-flex align-items-end">
-            <button
-              className="btn btn-secondary w-100"
-              onClick={() => {
-                setFilterDepartment("");
-                setFilterEventName("");
-              }}
-            >
-              Clear Filters
-            </button>
-          </div>
-        </div>
-        <div className="mt-2">
-          <small className="text-muted">
-            Showing {filteredRequests.length} of {requests.length} requests
-          </small>
-        </div>
-      </div>
-
-      <div className="card shadow p-4">
-        <div className="table-responsive">
-          <table className="table table-bordered table-hover">
-            <thead className="table-dark">
-              <tr>
-                <th>#</th>
-                <th>Reference No</th>
-                <th>Staff</th>
-                <th>Department</th>
-                <th>Event</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Report</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {filteredRequests.length === 0 && (
-                <tr>
-                  <td colSpan="9" className="text-center text-muted py-3">
-                    No requests found
-                  </td>
-                </tr>
-              )}
-
-              {filteredRequests.map((req, index) => (
-                <tr key={req._id}>
-                  <td>{index + 1}</td>
-                  <td>{req.referenceNo || "-"}</td>
-                  <td>{req.staffName}</td>
-                  <td>{req.department}</td>
-                  <td>{req.eventName}</td>
-                  <td>{req.eventDate}</td>
-                  <td>
-                    <span
-                      className={
-                        req.isCompleted
-                          ? "badge bg-success"
-                          : "badge bg-warning text-dark"
-                      }
-                    >
-                      {req.overallStatus}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-primary btn-sm"
-                      onClick={() => window.open(approvalLetterUrl(req._id), "_blank")}
-                    >
-                      View Approval Letter
-                    </button>
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleDelete(req._id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
->>>>>>> bae7cf956ba50e58851e1b351b5c8482c2718ba9
         </div>
       </div>
     </div>

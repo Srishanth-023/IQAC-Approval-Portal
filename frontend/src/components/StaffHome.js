@@ -42,10 +42,6 @@ function StaffHome() {
   const [editReport, setEditReport] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Duplicate event modal state
-  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
-  const [duplicateMessage, setDuplicateMessage] = useState("");
-
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
   const staffId = user?.id;
@@ -93,12 +89,10 @@ function StaffHome() {
   // VIEW REJECTION DETAILS
   // ----------------------------------------
   const handleViewRejection = (req) => {
-    // Find the rejection/recreate approval entry
     const rejections = (req.approvals || []).filter(
       (a) => a.status === "Recreated"
     );
     
-    // Extract who rejected from status if no approvals found
     let rejectorRole = null;
     const status = req.overallStatus || "";
     const match = status.match(/^(\w+)\s+requested\s+recreation/i);
@@ -111,7 +105,7 @@ function StaffHome() {
       eventDate: req.eventDate,
       status: req.overallStatus,
       rejections,
-      rejectorRole, // fallback if approvals array is empty
+      rejectorRole,
     });
     setShowRejectionModal(true);
   };
@@ -184,11 +178,9 @@ function StaffHome() {
       status.includes("completed") ||
       status.includes("approved");
 
-    if (isApproved) return "#e6ffed"; // light green
-
-    if (req.currentRole === "IQAC") return "#ffe5e5"; // light red
-
-    return "#fff8cc"; // light yellow
+    if (isApproved) return "#e6ffed";
+    if (req.currentRole === "IQAC") return "#ffe5e5";
+    return "#fff8cc";
   };
 
   // ----------------------------------------
@@ -196,11 +188,6 @@ function StaffHome() {
   // ----------------------------------------
   const submit = async (e) => {
     e.preventDefault();
-
-    console.log("Submit clicked!");
-    console.log("Event Name:", eventName);
-    console.log("Purpose:", purpose);
-    console.log("Report:", report);
 
     if (!report) {
       return toast.error("Please upload event report file");
@@ -213,14 +200,10 @@ function StaffHome() {
     formData.append("purpose", purpose);
     formData.append("event_report", report);
 
-    console.log("Sending request to backend...");
-
     try {
       await createRequest(formData);
-      console.log("Request successful!");
       toast.success("Request submitted!");
 
-      // clear form
       setEventName("");
       setEventDate("");
       setPurpose("");
@@ -228,17 +211,10 @@ function StaffHome() {
 
       loadRequests();
     } catch (err) {
-      console.log("Error caught:", err);
-      console.log("Error response:", err.response);
-      
-      // Check if it's a duplicate event error
       if (err.response && err.response.data && err.response.data.error) {
         const errorMsg = err.response.data.error;
-        console.log("Error message:", errorMsg);
         
-        // Show custom modal for duplicate events
         if (errorMsg.includes("already created") || errorMsg.includes("similar event")) {
-          console.log("Showing duplicate modal");
           setDuplicateMessage(errorMsg);
           setShowDuplicateModal(true);
         } else {
@@ -255,15 +231,21 @@ function StaffHome() {
   // ----------------------------------------
   if (!user) {
     return (
-      <div className="container mt-5 text-center">
-        <h3 className="text-danger">Unauthorized Access</h3>
-        <p>Please login again.</p>
-        <button
-          className="btn btn-primary"
-          onClick={() => navigate("/", { replace: true })}
-        >
-          Go to Login
-        </button>
+      <div className="dashboard-page">
+        <div className="dashboard-wrapper" style={{ maxWidth: "500px" }}>
+          <div className="dashboard-card">
+            <div className="dashboard-card-body" style={{ textAlign: "center" }}>
+              <h3 style={{ color: "#ef4444" }}>Unauthorized Access</h3>
+              <p>Please login again.</p>
+              <button
+                className="btn-primary-custom"
+                onClick={() => navigate("/", { replace: true })}
+              >
+                Go to Login
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -272,7 +254,6 @@ function StaffHome() {
   // MAIN RENDER
   // ----------------------------------------
   return (
-<<<<<<< HEAD
     <div className="dashboard-page">
       <div className="dashboard-wrapper">
         {/* HEADER */}
@@ -295,115 +276,6 @@ function StaffHome() {
               </div>
               <button className="btn-logout" onClick={logout}>
                 Logout
-=======
-    <div className="container mt-4">
-      {/* HEADER */}
-      <div className="d-flex justify-content-between align-items-center">
-        <h2 className="fw-bold text-primary">Staff Dashboard</h2>
-
-        <button className="btn btn-danger btn-sm" onClick={logout}>
-          Logout
-        </button>
-      </div>
-
-      <h5 className="text-secondary">Welcome, {user.name}</h5>
-      <hr />
-
-      {/* CREATE REQUEST */}
-      <div className="card shadow p-4">
-        <h4 className="fw-bold mb-3">Create Event Request</h4>
-
-        <form onSubmit={submit}>
-          <input
-            className="form-control mb-3"
-            placeholder="Event Name"
-            value={eventName}
-            onChange={(e) => setEventName(e.target.value)}
-            required
-          />
-
-          <input
-            className="form-control mb-3"
-            type="date"
-            value={eventDate}
-            onChange={(e) => setEventDate(e.target.value)}
-            required
-          />
-
-          <textarea
-            className="form-control mb-3"
-            placeholder="Purpose of Event"
-            value={purpose}
-            onChange={(e) => setPurpose(e.target.value)}
-            required
-          />
-
-          <input
-            className="form-control mb-3"
-            type="file"
-            accept=".pdf,application/pdf"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              if (file) {
-                // Check if file is PDF
-                if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-                  toast.error("Only PDF files are allowed. Please upload a PDF file.");
-                  e.target.value = ""; // Clear the input
-                  setReport(null);
-                  return;
-                }
-                setReport(file);
-              }
-            }}
-            required
-          />
-          <small className="text-muted">Only PDF files are accepted</small>
-
-          <button type="submit" className="btn btn-primary w-100">Submit</button>
-        </form>
-      </div>
-
-      <hr className="my-4" />
-
-      {/* REQUEST LIST */}
-      <h3 className="fw-bold">Your Requests</h3>
-
-      {requests.length === 0 && (
-        <p className="text-muted">No requests submitted yet.</p>
-      )}
-
-      {requests.map((req) => {
-        const bgColor = getStatusColor(req);
-
-        const isApproved =
-          req.isCompleted ||
-          (req.overallStatus || "").toLowerCase().includes("completed");
-
-        return (
-          <div
-            key={req._id}
-            className="card p-3 mt-3 shadow-sm"
-            style={{
-              backgroundColor: bgColor,
-              borderLeft: "6px solid rgba(0,0,0,0.2)",
-            }}
-          >
-            <h5 className="fw-bold">{req.eventName}</h5>
-            <p>
-              <b>Date:</b> {req.eventDate}
-            </p>
-            <p>
-              <b>Status:</b> {req.overallStatus}
-            </p>
-
-            {/* VIEW FILE */}
-            {req.reportUrl && (
-              <button
-                className="btn btn-secondary btn-sm mt-2 w-100"
-                onClick={() => handleViewReport(req._id)}
-              >
-                View Uploaded File
->>>>>>> bae7cf956ba50e58851e1b351b5c8482c2718ba9
               </button>
             </div>
           </div>
@@ -582,23 +454,11 @@ function StaffHome() {
 
       {/* EDIT REQUEST MODAL */}
       {showEditModal && editingRequest && (
-        <div
-          className="modal-overlay"
-          onClick={() => setShowEditModal(false)}
-        >
-          <div
-            className="modal-container"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '700px' }}
-          >
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '700px' }}>
             <div className="modal-header-custom">
               <h5>✏️ Edit & Resubmit Request</h5>
-              <button
-                className="modal-close-btn"
-                onClick={() => setShowEditModal(false)}
-              >
-                ✕
-              </button>
+              <button className="modal-close-btn" onClick={() => setShowEditModal(false)}>✕</button>
             </div>
             <form onSubmit={handleSubmitEdit}>
               <div className="modal-body-custom">
@@ -683,22 +543,11 @@ function StaffHome() {
 
       {/* REJECTION DETAILS MODAL */}
       {showRejectionModal && selectedRejection && (
-        <div
-          className="modal-overlay"
-          onClick={() => setShowRejectionModal(false)}
-        >
-          <div
-            className="modal-container"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="modal-overlay" onClick={() => setShowRejectionModal(false)}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header-custom danger">
               <h5>⚠️ Rejection Details</h5>
-              <button
-                className="modal-close-btn"
-                onClick={() => setShowRejectionModal(false)}
-              >
-                ✕
-              </button>
+              <button className="modal-close-btn" onClick={() => setShowRejectionModal(false)}>✕</button>
             </div>
             <div className="modal-body-custom">
               <div className="alert-custom alert-info" style={{ marginBottom: '1rem' }}>
@@ -755,10 +604,7 @@ function StaffHome() {
               </div>
             </div>
             <div className="modal-footer-custom">
-              <button
-                className="btn-secondary-custom"
-                onClick={() => setShowRejectionModal(false)}
-              >
+              <button className="btn-secondary-custom" onClick={() => setShowRejectionModal(false)}>
                 Close
               </button>
             </div>
@@ -768,42 +614,25 @@ function StaffHome() {
 
       {/* DUPLICATE EVENT WARNING MODAL */}
       {showDuplicateModal && (
-        <div
-          className="modal show d-block"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-          onClick={() => setShowDuplicateModal(false)}
-        >
-          <div
-            className="modal-dialog modal-dialog-centered"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="modal-content border-0 shadow-lg">
-              <div className="modal-header bg-warning text-dark border-0">
-                <h5 className="modal-title fw-bold">⚠️ Duplicate Event Detected</h5>
-                <button
-                  className="btn-close"
-                  onClick={() => setShowDuplicateModal(false)}
-                ></button>
+        <div className="modal-overlay" onClick={() => setShowDuplicateModal(false)}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header-custom" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' }}>
+              <h5>⚠️ Duplicate Event Detected</h5>
+              <button className="modal-close-btn" onClick={() => setShowDuplicateModal(false)}>✕</button>
+            </div>
+            <div className="modal-body-custom">
+              <div className="alert-custom alert-warning">
+                <p style={{ marginBottom: '0.5rem' }}><strong>{duplicateMessage}</strong></p>
+                <hr style={{ margin: '0.75rem 0', borderColor: '#fbbf24' }} />
+                <p style={{ margin: 0, fontSize: '0.875rem' }}>
+                  💡 <strong>Suggestion:</strong> Please choose a different event name or modify the purpose to make it unique.
+                </p>
               </div>
-              <div className="modal-body">
-                <div className="alert alert-warning mb-0">
-                  <p className="mb-2"><strong>{duplicateMessage}</strong></p>
-                  <hr />
-                  <p className="mb-0 text-muted">
-                    <small>
-                      💡 <strong>Suggestion:</strong> Please choose a different event name or modify the purpose to make it unique.
-                    </small>
-                  </p>
-                </div>
-              </div>
-              <div className="modal-footer border-0">
-                <button
-                  className="btn btn-primary px-4"
-                  onClick={() => setShowDuplicateModal(false)}
-                >
-                  Got it
-                </button>
-              </div>
+            </div>
+            <div className="modal-footer-custom">
+              <button className="btn-primary-custom" onClick={() => setShowDuplicateModal(false)}>
+                Got it
+              </button>
             </div>
           </div>
         </div>

@@ -12,43 +12,34 @@ import useDisableBack from "./useDisableBack";
 import "./Dashboard.css";
 import logo from '../assets/kite-logo.png';
 
+const flowOptions = ["HOD", "PRINCIPAL", "DIRECTOR", "AO", "CEO"];
+
 function IQACHome() {
-  // ------------------------------------
-  // HOOKS
-  // ------------------------------------
+  const role = "IQAC";
   const navigate = useNavigate();
   useDisableBack();
 
-  const role = "IQAC";
-
   const [requests, setRequests] = useState([]);
+  const [refNumbers, setRefNumbers] = useState({});
+  const [workflows, setWorkflows] = useState({});
+  const [comments, setComments] = useState({});
+  const [refWarnings, setRefWarnings] = useState({});
   const [loading, setLoading] = useState(true);
 
-  const [refNumbers, setRefNumbers] = useState({}); // per request
-  const [workflows, setWorkflows] = useState({}); // per request
-  const [comments, setComments] = useState({}); // comments per request
-  const [refWarnings, setRefWarnings] = useState({}); // warnings for duplicate ref numbers
-
-  const flowOptions = ["HOD", "PRINCIPAL", "DIRECTOR", "AO", "CEO"];
-
-  // ------------------------------------
-  // LOGOUT
-  // ------------------------------------
   const logout = () => {
     localStorage.removeItem("user");
     navigate("/", { replace: true });
   };
 
-  // ------------------------------------
-  // LOAD REQUESTS
-  // ------------------------------------
   const loadRequests = async () => {
     try {
-      const res = await fetchRequestsForRole(role);
+      setLoading(true);
+      const res = await fetchRequestsForRole("IQAC");
       setRequests(res.data);
-      setLoading(false);
     } catch (err) {
       toast.error("Failed to load requests");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,9 +47,6 @@ function IQACHome() {
     loadRequests();
   }, []);
 
-  // ------------------------------------
-  // VIEW REPORT - Fetch fresh signed URL
-  // ------------------------------------
   const handleViewReport = async (id) => {
     try {
       const res = await getFreshReportUrl(id);
@@ -70,113 +58,95 @@ function IQACHome() {
     }
   };
 
-  // ------------------------------------
-  // COMMENT HANDLER
-  // ------------------------------------
-  const handleCommentChange = (id, text) => {
-    setComments((prev) => ({ ...prev, [id]: text }));
+  const checkRefNumberUniqueness = async (refNo, requestId) => {
+    if (refNo.length === 8) {
+      try {
+        const res = await checkReferenceNumber(refNo);
+        if (res.data.exists) {
+          setRefWarnings(prev => ({
+            ...prev,
+            [requestId]: `⚠️ Reference number "${refNo}" is already used by another request!`
+          }));
+        } else {
+          setRefWarnings(prev => {
+            const newWarnings = { ...prev };
+            delete newWarnings[requestId];
+            return newWarnings;
+          });
+        }
+      } catch (err) {
+        console.error("Error checking ref number:", err);
+      }
+    } else {
+      setRefWarnings(prev => {
+        const newWarnings = { ...prev };
+        delete newWarnings[requestId];
+        return newWarnings;
+      });
+    }
   };
 
-  // ------------------------------------
-  // CHECK REFERENCE NUMBER UNIQUENESS
-  // ------------------------------------
-  const checkRefNumberUniqueness = async (refNumber, requestId) => {
-    if (refNumber.length !== 8) {
-      setRefWarnings((prev) => ({ ...prev, [requestId]: "" }));
-      return;
+  const handleCommentChange = (id, value) => {
+    setComments((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleApprove = async (id) => {
+    const ref = refNumbers[id] || "";
+    const flow = workflows[id] || [];
+    const cmt = comments[id] || "";
+
+    if (ref.length !== 8 || !/^[A-Za-z0-9]+$/.test(ref)) {
+      return toast.error("Reference Number must be exactly 8 alphanumeric characters");
+    }
+
+    if (refWarnings[id]) {
+      return toast.error("Please use a different reference number - this one is already in use");
+    }
+
+    if (flow.length === 0) {
+      return toast.error("Select at least one workflow role");
     }
 
     try {
-      const res = await checkReferenceNumber(refNumber);
-      if (res.data.exists) {
-        setRefWarnings((prev) => ({
+      await approveIQAC(id, {
+        referenceNo: ref,
+        workflowRoles: flow,
+        comments: cmt,
+      });
+
+      toast.success("Request approved and forwarded!");
+      loadRequests();
+    } catch (err) {
+      if (err.response?.data?.error?.includes("duplicate") || err.response?.data?.error?.includes("already exists")) {
+        toast.error("This reference number is already in use. Please choose a different one.");
+        setRefWarnings(prev => ({
           ...prev,
-          [requestId]: `⚠️ This reference number is already used for event: "${res.data.eventName}"`,
+          [id]: `⚠️ Reference number "${ref}" is already used!`
         }));
       } else {
-        setRefWarnings((prev) => ({ ...prev, [requestId]: "" }));
+        toast.error(err.response?.data?.error || "Failed to approve");
       }
-    } catch (err) {
-      console.error("Error checking reference number:", err);
     }
   };
 
-  // ------------------------------------
-  // APPROVE
-  // ------------------------------------
-  const handleApprove = async (id) => {
-    const cmt = comments[id] || "";
-    const refNumber = refNumbers[id] || "";
-    const flowRoles = workflows[id] || [];
-
-    // Reference number must be exactly 8 alphanumeric characters
-    if (!/^[A-Z0-9]{8}$/.test(refNumber)) {
-      return toast.error("Reference number must be exactly 8 characters (letters and numbers only).");
-    }
-
-    // Check if reference number is duplicate
-    if (refWarnings[id]) {
-      return toast.error("Cannot approve: Reference number is already in use. Please use a unique reference.");
-    }
-
-    // At least one next approver required
-    if (flowRoles.length === 0) {
-      return toast.error("Select at least one role for the workflow.");
-    }
-
-    try {
-      await actOnRequest(id, {
-        action: "approve",
-        comments: cmt,
-        refNumber,
-        flow: flowRoles,
-      });
-
-      toast.success("Approved and forwarded!");
-
-      // reset only for that card
-      setComments((prev) => ({ ...prev, [id]: "" }));
-      setRefNumbers((prev) => ({ ...prev, [id]: "" }));
-      setWorkflows((prev) => ({ ...prev, [id]: [] }));
-
-      loadRequests();
-    } catch {
-      toast.error("Approval failed");
-    }
-  };
-
-  // ------------------------------------
-  // RECREATE
-  // ------------------------------------
   const handleRecreate = async (id) => {
     const cmt = comments[id];
-
-    if (!cmt || cmt.trim() === "") {
-      return toast.error("Comments are required for recreation!");
-    }
+    if (!cmt) return toast.error("Comments required to recreate");
 
     try {
-      await actOnRequest(id, {
-        action: "recreate",
-        comments: cmt,
-      });
-
-      toast.success("Sent back for recreation!");
-
-      // reset comment only for this request
-      setComments((prev) => ({ ...prev, [id]: "" }));
-
+      await recreateRequest(id, { role, comments: cmt });
+      toast.success("Request returned to staff");
       loadRequests();
-    } catch {
-      toast.error("Recreate failed");
+    } catch (err) {
+      toast.error("Failed to recreate request");
     }
   };
 
   if (loading) return (
     <div className="dashboard-page">
       <div className="dashboard-wrapper">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
+        <div className="loading-spinner">
+          <div className="spinner"></div>
           <p className="loading-text">Loading requests...</p>
         </div>
       </div>
@@ -184,7 +154,6 @@ function IQACHome() {
   );
 
   return (
-<<<<<<< HEAD
     <div className="dashboard-page">
       <div className="dashboard-wrapper">
         {/* HEADER */}
@@ -208,140 +177,6 @@ function IQACHome() {
               <button className="btn-logout" onClick={logout}>
                 Logout
               </button>
-=======
-    <div className="container mt-4">
-
-      {/* HEADER */}
-      <div className="d-flex justify-content-between align-items-center">
-        <h2 className="fw-bold text-primary">IQAC Dashboard</h2>
-
-        <button className="btn btn-danger btn-sm" onClick={logout}>
-          Logout
-        </button>
-      </div>
-
-      <p className="text-muted">
-        Review event requests, assign workflow, approve or recreate.
-      </p>
-      <hr />
-
-      <div className="row">
-        {requests.map((req) => (
-          <div className="col-md-4" key={req._id}>
-            <div className="card shadow p-3 mb-4">
-
-              {/* BASIC DETAILS */}
-              <h5 className="fw-bold">{req.eventName}</h5>
-              <p><b>Event Date:</b> {req.eventDate}</p>
-              <p><b>Staff:</b> {req.staffName}</p>
-              <p><b>Status:</b> {req.overallStatus}</p>
-
-              {/* VIEW REPORT FILE */}
-              {req.reportUrl && (
-                <button
-                  className="btn btn-link p-0 mt-2"
-                  onClick={() => handleViewReport(req._id)}
-                >
-                  View Uploaded Report
-                </button>
-              )}
-
-              {/* SHOW APPROVAL REPORT WHEN COMPLETED */}
-              {req.isCompleted && (
-                <button
-                  className="btn btn-success btn-sm mt-3 w-100"
-                  onClick={() => window.open(approvalLetterUrl(req._id), "_blank")}
-                >
-                  Generate Approval Report
-                </button>
-              )}
-
-              {/* SHOW IQAC ACTIONS ONLY WHEN WAITING FOR IQAC */}
-              {req.currentRole === role && (
-                <>
-                  <hr />
-
-                  {/* REFERENCE NO */}
-                  <label className="fw-bold">Reference Number (8 characters)</label>
-                  <input
-                    type="text"
-                    className={`form-control ${refWarnings[req._id] ? 'border-warning' : ''}`}
-                    maxLength="8"
-                    placeholder="Enter 8 character reference"
-                    value={refNumbers[req._id] || ""}
-                    onChange={(e) => {
-                      // Only allow alphanumeric characters (letters and numbers)
-                      const value = e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-                      setRefNumbers((prev) => ({
-                        ...prev,
-                        [req._id]: value,
-                      }));
-                      // Check uniqueness when user types
-                      checkRefNumberUniqueness(value, req._id);
-                    }}
-                  />
-                  {refWarnings[req._id] ? (
-                    <small className="text-warning d-block mb-2">
-                      <strong>{refWarnings[req._id]}</strong>
-                    </small>
-                  ) : (
-                    <small className="text-muted d-block mb-2">Letters and numbers only, 8 characters (e.g., AB123456)</small>
-                  )}
-
-                  {/* WORKFLOW ROLES */}
-                  <label className="fw-bold">Select Workflow Roles</label>
-                  {flowOptions.map((r) => (
-                    <div key={r}>
-                      <input
-                        type="checkbox"
-                        checked={(workflows[req._id] || []).includes(r)}
-                        onChange={() =>
-                          setWorkflows((prev) => {
-                            const current = prev[req._id] || [];
-                            return {
-                              ...prev,
-                              [req._id]: current.includes(r)
-                                ? current.filter((x) => x !== r)
-                                : [...current, r],
-                            };
-                          })
-                        }
-                      />
-                      <label className="ms-2">{r}</label>
-                    </div>
-                  ))}
-
-                  <hr />
-
-                  {/* COMMENTS */}
-                  <label className="fw-bold">Comments</label>
-                  <textarea
-                    className="form-control mb-3"
-                    placeholder="Enter comments (required for recreate)"
-                    value={comments[req._id] || ""}
-                    onChange={(e) =>
-                      handleCommentChange(req._id, e.target.value)
-                    }
-                  />
-
-                  {/* ACTION BUTTONS */}
-                  <button
-                    className="btn btn-primary btn-sm me-2"
-                    onClick={() => handleApprove(req._id)}
-                  >
-                    Approve
-                  </button>
-
-                  <button
-                    className="btn btn-warning btn-sm"
-                    onClick={() => handleRecreate(req._id)}
-                  >
-                    Recreate
-                  </button>
-                </>
-              )}
-
->>>>>>> bae7cf956ba50e58851e1b351b5c8482c2718ba9
             </div>
           </div>
         </div>
@@ -360,87 +195,105 @@ function IQACHome() {
         ) : (
           <div className="row g-4">
             {requests.map((req) => (
-              <div className="col-lg-4 col-md-6" key={req._id}>
-                <div className="dashboard-card fade-in" style={{ height: '100%' }}>
-                  <div className="dashboard-card-header" style={{ padding: '1rem 1.25rem' }}>
-                    <h4 style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>{req.eventName}</h4>
-                    <p style={{ margin: 0, opacity: 0.9 }}>{req.staffName} • {req.department}</p>
-                  </div>
-                  <div className="dashboard-card-body" style={{ padding: '1.25rem' }}>
+              <div className="col-md-6 col-lg-4" key={req._id}>
+                <div className="dashboard-card fade-in h-100">
+                  <div className="dashboard-card-body">
+                    {/* Basic Details */}
+                    <h5 style={{ fontWeight: 700, color: '#1e3a8a', marginBottom: '1rem' }}>
+                      📋 {req.eventName}
+                    </h5>
                     <div style={{ marginBottom: '1rem' }}>
                       <p style={{ margin: '0.25rem 0', color: '#475569' }}>
                         <strong>Event Date:</strong> {req.eventDate}
                       </p>
                       <p style={{ margin: '0.25rem 0', color: '#475569' }}>
-                        <strong>Status:</strong>{' '}
-                        <span className={`badge-custom ${
-                          req.isCompleted ? 'badge-approved' : 
-                          req.overallStatus?.toLowerCase().includes('pending') ? 'badge-pending' : 
-                          'badge-processing'
-                        }`}>
-                          {req.overallStatus}
-                        </span>
+                        <strong>Staff:</strong> {req.staffName}
+                      </p>
+                      <p style={{ margin: '0.25rem 0', color: '#475569' }}>
+                        <strong>Department:</strong> {req.department}
+                      </p>
+                      <p style={{ margin: '0.25rem 0', color: '#475569' }}>
+                        <strong>Status:</strong>{" "}
+                        <span className="badge-custom badge-pending">{req.overallStatus}</span>
                       </p>
                     </div>
 
+                    {/* View Report */}
                     {req.reportUrl && (
                       <button
                         className="btn-secondary-custom btn-sm-custom w-100"
                         onClick={() => handleViewReport(req._id)}
-                        style={{ marginBottom: '0.75rem' }}
+                        style={{ marginBottom: '1rem' }}
                       >
                         📄 View Uploaded Report
                       </button>
                     )}
 
+                    {/* Show Approval Report when completed */}
                     {req.isCompleted && (
                       <button
                         className="btn-success-custom btn-sm-custom w-100"
                         onClick={() => window.open(approvalLetterUrl(req._id), "_blank")}
+                        style={{ marginBottom: '1rem' }}
                       >
                         ✅ Generate Approval Report
                       </button>
                     )}
 
+                    {/* IQAC Actions */}
                     {req.currentRole === role && (
-                      <>
-                        <div className="section-divider" style={{ margin: '1rem 0' }}></div>
-
+                      <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                        {/* Reference Number */}
                         <div className="form-group-custom">
-                          <label className="form-label-custom">Reference Number (8 digits)</label>
+                          <label className="form-label-custom" style={{ fontWeight: 600 }}>
+                            Reference Number (8 characters)
+                          </label>
                           <input
                             type="text"
                             className="form-input-custom"
                             maxLength="8"
-                            placeholder="Enter 8 digit number"
+                            placeholder="Enter 8 character reference"
                             value={refNumbers[req._id] || ""}
                             onChange={(e) => {
-                              const value = e.target.value.replace(/[^0-9]/g, "");
+                              const value = e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
                               setRefNumbers((prev) => ({
                                 ...prev,
                                 [req._id]: value,
                               }));
+                              checkRefNumberUniqueness(value, req._id);
                             }}
+                            style={refWarnings[req._id] ? { borderColor: '#f59e0b' } : {}}
                           />
-                          <small style={{ color: '#64748b', fontSize: '0.75rem' }}>Only numbers allowed (e.g., 12345678)</small>
+                          {refWarnings[req._id] ? (
+                            <small style={{ color: '#f59e0b', fontWeight: 600, display: 'block', marginTop: '0.25rem' }}>
+                              {refWarnings[req._id]}
+                            </small>
+                          ) : (
+                            <small style={{ color: '#64748b', display: 'block', marginTop: '0.25rem' }}>
+                              Letters and numbers only (e.g., AB123456)
+                            </small>
+                          )}
                         </div>
 
+                        {/* Workflow Roles */}
                         <div className="form-group-custom">
-                          <label className="form-label-custom">Workflow Roles</label>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          <label className="form-label-custom" style={{ fontWeight: 600 }}>
+                            Select Workflow Roles
+                          </label>
+                          <div style={{ 
+                            background: '#f8fafc', 
+                            borderRadius: '0.5rem', 
+                            padding: '0.75rem',
+                            border: '1px solid #e2e8f0'
+                          }}>
                             {flowOptions.map((r) => (
                               <label key={r} style={{ 
                                 display: 'flex', 
                                 alignItems: 'center', 
-                                gap: '0.375rem',
-                                padding: '0.375rem 0.75rem',
-                                background: (workflows[req._id] || []).includes(r) ? '#dbeafe' : '#f1f5f9',
-                                borderRadius: '0.5rem',
+                                gap: '0.5rem',
+                                padding: '0.375rem 0',
                                 cursor: 'pointer',
-                                fontSize: '0.875rem',
-                                fontWeight: 500,
-                                color: (workflows[req._id] || []).includes(r) ? '#1e40af' : '#475569',
-                                transition: 'all 0.2s ease'
+                                color: '#475569'
                               }}>
                                 <input
                                   type="checkbox"
@@ -456,28 +309,33 @@ function IQACHome() {
                                       };
                                     })
                                   }
-                                  style={{ accentColor: '#3b82f6' }}
+                                  style={{ width: '16px', height: '16px', accentColor: '#3b82f6' }}
                                 />
-                                {r}
+                                <span>{r}</span>
                               </label>
                             ))}
                           </div>
                         </div>
 
+                        {/* Comments */}
                         <div className="form-group-custom">
-                          <label className="form-label-custom">Comments</label>
+                          <label className="form-label-custom" style={{ fontWeight: 600 }}>
+                            Comments
+                          </label>
                           <textarea
                             className="form-input-custom"
                             placeholder="Enter comments (required for recreate)"
                             value={comments[req._id] || ""}
                             onChange={(e) => handleCommentChange(req._id, e.target.value)}
-                            style={{ minHeight: '80px' }}
+                            rows="2"
+                            style={{ resize: 'vertical' }}
                           />
                         </div>
 
+                        {/* Action Buttons */}
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button
-                            className="btn-success-custom btn-sm-custom"
+                            className="btn-primary-custom btn-sm-custom"
                             onClick={() => handleApprove(req._id)}
                             style={{ flex: 1 }}
                           >
@@ -491,7 +349,7 @@ function IQACHome() {
                             🔄 Recreate
                           </button>
                         </div>
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
