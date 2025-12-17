@@ -143,7 +143,6 @@ function IQACHome() {
   };
 
   if (loading) return (
-<<<<<<< HEAD
     <div className="dashboard-page">
       <div className="dashboard-wrapper">
         <div className="loading-spinner">
@@ -151,11 +150,6 @@ function IQACHome() {
           <p className="loading-text">Loading requests...</p>
         </div>
       </div>
-=======
-    <div className="text-center py-5 mt-5">
-      <span className="spinner-border text-primary" style={{ width: "3rem", height: "3rem" }}></span>
-      <p className="text-muted mt-3">Loading requests...</p>
->>>>>>> f4eb033c0a1d6257222563fa780352e37444fa24
     </div>
   );
 

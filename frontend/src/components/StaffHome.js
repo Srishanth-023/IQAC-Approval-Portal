@@ -220,10 +220,7 @@ function StaffHome() {
 
       loadRequests();
     } catch (err) {
-<<<<<<< HEAD
-=======
       // Check if it's a duplicate event error
->>>>>>> f4eb033c0a1d6257222563fa780352e37444fa24
       if (err.response && err.response.data && err.response.data.error) {
         const errorMsg = err.response.data.error;
         
@@ -269,7 +266,6 @@ function StaffHome() {
   // MAIN RENDER
   // ----------------------------------------
   return (
-<<<<<<< HEAD
     <div className="dashboard-page">
       <div className="dashboard-wrapper">
         {/* HEADER */}
@@ -292,126 +288,6 @@ function StaffHome() {
               </div>
               <button className="btn-logout" onClick={logout}>
                 Logout
-=======
-    <div className="container mt-4">
-      {/* HEADER */}
-      <div className="d-flex justify-content-between align-items-center">
-        <h2 className="fw-bold text-primary">Staff Dashboard</h2>
-
-        <button className="btn btn-danger btn-sm" onClick={logout}>
-          Logout
-        </button>
-      </div>
-
-      <h5 className="text-secondary">Welcome, {user.name}</h5>
-      <hr />
-
-      {/* CREATE REQUEST */}
-      <div className="card shadow p-4">
-        <h4 className="fw-bold mb-3">Create Event Request</h4>
-
-        <form onSubmit={submit}>
-          <input
-            className="form-control mb-3"
-            placeholder="Event Name"
-            value={eventName}
-            onChange={(e) => setEventName(e.target.value)}
-            required
-          />
-
-          <input
-            className="form-control mb-3"
-            type="date"
-            value={eventDate}
-            onChange={(e) => setEventDate(e.target.value)}
-            required
-          />
-
-          <textarea
-            className="form-control mb-3"
-            placeholder="Purpose of Event"
-            value={purpose}
-            onChange={(e) => setPurpose(e.target.value)}
-            required
-          />
-
-          <input
-            className="form-control mb-3"
-            type="file"
-            accept=".pdf,application/pdf"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              if (file) {
-                // Check if file is PDF
-                if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-                  toast.error("Only PDF files are allowed. Please upload a PDF file.");
-                  e.target.value = ""; // Clear the input
-                  setReport(null);
-                  return;
-                }
-                setReport(file);
-              }
-            }}
-            required
-          />
-          <small className="text-muted">Only PDF files are accepted</small>
-
-          <button type="submit" className="btn btn-primary w-100" disabled={isCreating}>
-            {isCreating ? (
-              <><span className="spinner-border spinner-border-sm me-2"></span>Submitting...</>
-            ) : (
-              "Submit"
-            )}
-          </button>
-        </form>
-      </div>
-
-      <hr className="my-4" />
-
-      {/* REQUEST LIST */}
-      <h3 className="fw-bold">Your Requests</h3>
-
-      {isLoading ? (
-        <div className="text-center py-4">
-          <span className="spinner-border text-primary"></span>
-          <p className="text-muted mt-2">Loading requests...</p>
-        </div>
-      ) : requests.length === 0 ? (
-        <p className="text-muted">No requests submitted yet.</p>
-      ) : null}
-
-      {!isLoading && requests.map((req) => {
-        const bgColor = getStatusColor(req);
-
-        const isApproved =
-          req.isCompleted ||
-          (req.overallStatus || "").toLowerCase().includes("completed");
-
-        return (
-          <div
-            key={req._id}
-            className="card p-3 mt-3 shadow-sm"
-            style={{
-              backgroundColor: bgColor,
-              borderLeft: "6px solid rgba(0,0,0,0.2)",
-            }}
-          >
-            <h5 className="fw-bold">{req.eventName}</h5>
-            <p>
-              <b>Date:</b> {req.eventDate}
-            </p>
-            <p>
-              <b>Status:</b> {req.overallStatus}
-            </p>
-
-            {/* VIEW FILE */}
-            {req.reportUrl && (
-              <button
-                className="btn btn-secondary btn-sm mt-2 w-100"
-                onClick={() => handleViewReport(req._id)}
-              >
-                View Uploaded File
->>>>>>> f4eb033c0a1d6257222563fa780352e37444fa24
               </button>
             </div>
           </div>
@@ -481,8 +357,8 @@ function StaffHome() {
                 <small style={{ color: '#64748b', fontSize: '0.8125rem' }}>Only PDF files are accepted</small>
               </div>
 
-              <button type="submit" className="btn-primary-custom w-100">
-                Submit Request
+              <button type="submit" className="btn-primary-custom w-100" disabled={isCreating}>
+                {isCreating ? "Submitting..." : "Submit Request"}
               </button>
             </form>
           </div>
@@ -495,7 +371,12 @@ function StaffHome() {
             <p>Track your submitted event requests</p>
           </div>
           <div className="dashboard-card-body">
-            {requests.length === 0 ? (
+            {isLoading ? (
+              <div className="loading-spinner">
+                <div className="spinner"></div>
+                <p className="loading-text">Loading requests...</p>
+              </div>
+            ) : requests.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-icon">📭</div>
                 <h4>No requests submitted yet</h4>

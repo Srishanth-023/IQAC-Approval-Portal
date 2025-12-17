@@ -10,11 +10,7 @@ export default function AdminAllRequests() {
   const user = JSON.parse(localStorage.getItem("user"));
 
   const [requests, setRequests] = useState([]);
-<<<<<<< HEAD
-  const [loading, setLoading] = useState(true);
-=======
   const [isLoading, setIsLoading] = useState(true);
->>>>>>> f4eb033c0a1d6257222563fa780352e37444fa24
   const [filterDepartment, setFilterDepartment] = useState("");
   const [filterEventName, setFilterEventName] = useState("");
 
@@ -25,17 +21,12 @@ export default function AdminAllRequests() {
   const loadRequests = async () => {
     setIsLoading(true);
     try {
-      setLoading(true);
       const res = await adminFetchAllRequests(user.role);
       setRequests(res.data);
     } catch (err) {
       toast.error("Failed to load all requests");
     } finally {
-<<<<<<< HEAD
-      setLoading(false);
-=======
       setIsLoading(false);
->>>>>>> f4eb033c0a1d6257222563fa780352e37444fa24
     }
   };
 
@@ -167,8 +158,7 @@ export default function AdminAllRequests() {
             </div>
           </div>
 
-<<<<<<< HEAD
-          {loading ? (
+          {isLoading ? (
             <div className="loading-spinner">
               <div className="spinner"></div>
               <p>Loading requests...</p>
@@ -240,63 +230,6 @@ export default function AdminAllRequests() {
         {/* Footer */}
         <div className="dashboard-footer">
           <p>© 2025 KITE Group of Institutions. All rights reserved.</p>
-=======
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan="9" className="text-center py-4">
-                    <span className="spinner-border text-primary"></span>
-                    <p className="text-muted mt-2 mb-0">Loading requests...</p>
-                  </td>
-                </tr>
-              ) : filteredRequests.length === 0 ? (
-                <tr>
-                  <td colSpan="9" className="text-center text-muted py-3">
-                    No requests found
-                  </td>
-                </tr>
-              ) : null}
-
-              {!isLoading && filteredRequests.map((req, index) => (
-                <tr key={req._id}>
-                  <td>{index + 1}</td>
-                  <td>{req.referenceNo || "-"}</td>
-                  <td>{req.staffName}</td>
-                  <td>{req.department}</td>
-                  <td>{req.eventName}</td>
-                  <td>{req.eventDate}</td>
-                  <td>
-                    <span
-                      className={
-                        req.isCompleted
-                          ? "badge bg-success"
-                          : "badge bg-warning text-dark"
-                      }
-                    >
-                      {req.overallStatus}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-primary btn-sm"
-                      onClick={() => window.open(approvalLetterUrl(req._id), "_blank")}
-                    >
-                      View Approval Letter
-                    </button>
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleDelete(req._id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
->>>>>>> f4eb033c0a1d6257222563fa780352e37444fa24
         </div>
       </div>
     </div>
