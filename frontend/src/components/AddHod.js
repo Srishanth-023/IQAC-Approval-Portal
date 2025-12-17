@@ -77,8 +77,13 @@ export default function AddHod() {
     const { name, password } = row.form;
     const isEdit = !!row.hod;
 
-    if (!name || !password) {
-      toast.error("Name and password are required");
+    if (!name) {
+      toast.error("Name is required");
+      return;
+    }
+
+    if (!isEdit && !password) {
+      toast.error("Password is required for new HOD");
       return;
     }
 
@@ -167,22 +172,27 @@ export default function AddHod() {
                   />
                 </div>
 
-                {/* Password */}
-                <div className="mb-3">
-                  <label className="form-label">
-                    {isEdit ? "New Password (or re-enter)" : "Password"}
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Enter password"
-                    value={form.password}
-                    onChange={(e) =>
-                      handleInputChange(department, "password", e.target.value)
-                    }
-                    required
-                  />
-                </div>
+                {/* Password - only show when creating new HOD */}
+                {!isEdit && (
+                  <div className="mb-3">
+                    <label className="form-label">Password</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Enter password"
+                      value={form.password}
+                      onChange={(e) =>
+                        handleInputChange(department, "password", e.target.value)
+                      }
+                      required
+                    />
+                  </div>
+                )}
+                {isEdit && (
+                  <div className="alert alert-info mb-3">
+                    <small>💡 To change password, use "Reset Password" button from the Admin Dashboard.</small>
+                  </div>
+                )}
 
                 <button className="btn btn-primary w-100" type="submit">
                   {isEdit ? "Update HOD" : "Create HOD"}

@@ -8,6 +8,7 @@ const compression = require("compression");
 const multer = require("multer");
 const dotenv = require("dotenv");
 const fs = require("fs");
+const bcrypt = require("bcrypt");
 
 const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
@@ -294,29 +295,27 @@ app.post("/api/auth/login", async (req, res) => {
       const trimmedName = (name || '').trim();
       const trimmedPassword = (password || '').trim();
       
-      console.log("Staff login attempt - Name:", trimmedName, "Password:", trimmedPassword);
-      
-      // Find staff with trimmed name comparison
+      // Find staff by name
       const allStaff = await Staff.find({});
-      const staff = allStaff.find(s => 
-        s.name.trim() === trimmedName && s.password.trim() === trimmedPassword
-      );
+      const staff = allStaff.find(s => s.name.trim() === trimmedName);
       
       if (!staff) {
-        // Try to find by name only to see if staff exists
-        const staffByName = allStaff.find(s => s.name.trim() === trimmedName);
-        
-        if (staffByName) {
-          console.log("Staff found by name:", staffByName.name);
-          console.log("Password mismatch. Expected:", staffByName.password.trim(), "Received:", trimmedPassword);
-          return res.status(400).json({ error: "Invalid password" });
-        }
-        
-        console.log("Staff not found with name:", trimmedName);
         return res.status(400).json({ error: "Invalid staff credentials" });
       }
-
-      console.log("Staff login successful:", staff.name.trim(), staff.department);
+      
+      // Check if password is hashed (starts with $2b$ for bcrypt)
+      let passwordMatch = false;
+      if (staff.password.startsWith('$2b$') || staff.password.startsWith('$2a$')) {
+        // Compare with bcrypt
+        passwordMatch = await bcrypt.compare(trimmedPassword, staff.password);
+      } else {
+        // Legacy plain text comparison (for existing accounts)
+        passwordMatch = staff.password.trim() === trimmedPassword;
+      }
+      
+      if (!passwordMatch) {
+        return res.status(400).json({ error: "Invalid password" });
+      }
 
       return res.json({
         user: {
@@ -344,7 +343,15 @@ app.post("/api/auth/login", async (req, res) => {
           .json({ error: "HOD for this department not found" });
       }
 
-      if (hodUser.password !== password) {
+      // Check if password is hashed
+      let passwordMatch = false;
+      if (hodUser.password.startsWith('$2b$') || hodUser.password.startsWith('$2a$')) {
+        passwordMatch = await bcrypt.compare(password, hodUser.password);
+      } else {
+        passwordMatch = hodUser.password === password;
+      }
+
+      if (!passwordMatch) {
         return res.status(400).json({ error: "Invalid password" });
       }
 
@@ -954,7 +961,7 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
 // ADMIN APIs
 // ===============================
 
-// 👉 Create Staff (Admin)
+//  Create Staff (Admin)
 app.post("/api/admin/create-staff", requireAdmin, async (req, res) => {
   try {
     const { name, email, department, password } = req.body;
@@ -974,8 +981,21 @@ app.post("/api/admin/create-staff", requireAdmin, async (req, res) => {
       return res.status(400).json({ error: "Staff with this email already exists" });
     }
 
-    const staff = await Staff.create({ name, email, department, password });
-    res.json({ message: "Staff created successfully", staff });
+    // Hash the password before storing
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const staff = await Staff.create({ name, email, department, password: hashedPassword });
+    
+    // Return staff info without exposing hashed password
+    res.json({ 
+      message: "Staff created successfully", 
+      staff: {
+        _id: staff._id,
+        name: staff.name,
+        email: staff.email,
+        department: staff.department
+      }
+    });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Server error" });
@@ -993,27 +1013,42 @@ app.get("/api/admin/all-staff", requireAdmin, async (req, res) => {
   }
 });
 
-// 👉 Update Staff (Admin)
+//  Update Staff (Admin)
 app.put("/api/admin/update-staff/:id", requireAdmin, async (req, res) => {
   try {
     const { name, email, department, password } = req.body;
 
+    const updateData = { name, email, department };
+    
+    // Only hash and update password if provided
+    if (password && password.trim() !== '') {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
     const staff = await Staff.findByIdAndUpdate(
       req.params.id,
-      { name, email, department, password },
+      updateData,
       { new: true }
     );
 
     if (!staff) return res.status(404).json({ error: "Staff not found" });
 
-    res.json({ message: "Staff updated", staff });
+    res.json({ 
+      message: "Staff updated", 
+      staff: {
+        _id: staff._id,
+        name: staff.name,
+        email: staff.email,
+        department: staff.department
+      }
+    });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// 👉 Delete Staff (Admin)
+//  Delete Staff (Admin)
 app.delete("/api/admin/delete-staff/:id", requireAdmin, async (req, res) => {
   try {
     const staff = await Staff.findByIdAndDelete(req.params.id);
@@ -1027,7 +1062,60 @@ app.delete("/api/admin/delete-staff/:id", requireAdmin, async (req, res) => {
   }
 });
 
-// 👉 Create HOD (Admin) - one per department
+//  Reset Staff Password (Admin)
+app.post("/api/admin/reset-staff-password/:id", requireAdmin, async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.trim() === '') {
+      return res.status(400).json({ error: "New password is required" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    const staff = await Staff.findByIdAndUpdate(
+      req.params.id,
+      { password: hashedPassword },
+      { new: true }
+    );
+
+    if (!staff) return res.status(404).json({ error: "Staff not found" });
+
+    res.json({ message: "Staff password reset successfully" });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+//  Reset HOD Password (Admin)
+app.post("/api/admin/reset-hod-password/:department", requireAdmin, async (req, res) => {
+  try {
+    const deptParam = (req.params.department || "").toUpperCase();
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.trim() === '') {
+      return res.status(400).json({ error: "New password is required" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    const hod = await User.findOneAndUpdate(
+      { role: "HOD", department: deptParam },
+      { password: hashedPassword },
+      { new: true }
+    );
+
+    if (!hod) return res.status(404).json({ error: "HOD not found for this department" });
+
+    res.json({ message: "HOD password reset successfully" });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+//  Create HOD (Admin) - one per department
 app.post("/api/admin/create-hod", requireAdmin, async (req, res) => {
   try {
     let { name, department, password } = req.body;
@@ -1051,21 +1139,32 @@ app.post("/api/admin/create-hod", requireAdmin, async (req, res) => {
         .json({ error: "HOD already exists for this department" });
     }
 
+    // Hash the password before storing
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const hod = await User.create({
       name,
       role: "HOD",
-      password,
+      password: hashedPassword,
       department,
     });
 
-    res.json({ message: "HOD created successfully", hod });
+    res.json({ 
+      message: "HOD created successfully", 
+      hod: {
+        _id: hod._id,
+        name: hod.name,
+        role: hod.role,
+        department: hod.department
+      }
+    });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// 👉 Get HOD by Department (Admin)
+//  Get HOD by Department (Admin)
 app.get("/api/admin/get-hod/:department", requireAdmin, async (req, res) => {
   try {
     const deptParam = (req.params.department || "").toUpperCase();
@@ -1079,7 +1178,7 @@ app.get("/api/admin/get-hod/:department", requireAdmin, async (req, res) => {
   }
 });
 
-// 👉 Update HOD (Admin)
+//  Update HOD (Admin)
 app.put("/api/admin/update-hod/:department", requireAdmin, async (req, res) => {
   try {
     const deptParam = (req.params.department || "").toUpperCase();
@@ -1087,7 +1186,11 @@ app.put("/api/admin/update-hod/:department", requireAdmin, async (req, res) => {
 
     const update = {};
     if (name) update.name = name;
-    if (password) update.password = password;
+    
+    // Only hash and update password if provided
+    if (password && password.trim() !== '') {
+      update.password = await bcrypt.hash(password, 10);
+    }
 
     const hod = await User.findOneAndUpdate(
       { role: "HOD", department: deptParam },
@@ -1098,14 +1201,22 @@ app.put("/api/admin/update-hod/:department", requireAdmin, async (req, res) => {
     if (!hod)
       return res.status(404).json({ error: "No HOD found for this department" });
 
-    res.json({ message: "HOD updated successfully", hod });
+    res.json({ 
+      message: "HOD updated successfully", 
+      hod: {
+        _id: hod._id,
+        name: hod.name,
+        role: hod.role,
+        department: hod.department
+      }
+    });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// 👉 Delete/Unassign HOD (Admin)
+//  Delete/Unassign HOD (Admin)
 app.delete("/api/admin/delete-hod/:department", requireAdmin, async (req, res) => {
   try {
     const deptParam = (req.params.department || "").toUpperCase();
@@ -1126,7 +1237,7 @@ app.delete("/api/admin/delete-hod/:department", requireAdmin, async (req, res) =
   }
 });
 
-// 👉 Get all requests (Admin)
+//  Get all requests (Admin)
 app.get("/api/admin/all-requests", requireAdmin, async (req, res) => {
   try {
     const requests = await Request.find({}).sort({ createdAt: -1 });
@@ -1142,12 +1253,12 @@ app.get("/api/admin/all-requests", requireAdmin, async (req, res) => {
   }
 });
 
-// 👉 Get departments list
+//  Get departments list
 app.get("/api/admin/departments", requireAdmin, (req, res) => {
   res.json({ departments: DEPARTMENTS });
 });
 
-// 👉 Delete request (Admin)
+//  Delete request (Admin)
 app.delete("/api/admin/delete-request/:id", requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -1165,7 +1276,7 @@ app.delete("/api/admin/delete-request/:id", requireAdmin, async (req, res) => {
   }
 });
 
-// 👉 Delete all requests (Admin)
+//  Delete all requests (Admin)
 app.delete("/api/admin/delete-all-requests", requireAdmin, async (req, res) => {
   try {
     const result = await Request.deleteMany({});

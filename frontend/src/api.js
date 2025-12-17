@@ -130,6 +130,12 @@ export const adminDeleteStaff = (id, role) =>
     headers: { "x-user-role": role },
   });
 
+// Reset Staff Password
+export const adminResetStaffPassword = (id, newPassword, role) =>
+  API.post(`/admin/reset-staff-password/${id}`, { newPassword }, {
+    headers: { "x-user-role": role },
+  });
+
 // Get HOD for a department
 export const adminGetHodByDepartment = (department, role) =>
   API.get(`/admin/get-hod/${department}`, {
@@ -145,6 +151,12 @@ export const adminUpdateHod = (department, data, role) =>
 // Delete/Unassign HOD
 export const adminDeleteHod = (department, role) =>
   API.delete(`/admin/delete-hod/${department}`, {
+    headers: { "x-user-role": role },
+  });
+
+// Reset HOD Password
+export const adminResetHodPassword = (department, newPassword, role) =>
+  API.post(`/admin/reset-hod-password/${department}`, { newPassword }, {
     headers: { "x-user-role": role },
   });
 

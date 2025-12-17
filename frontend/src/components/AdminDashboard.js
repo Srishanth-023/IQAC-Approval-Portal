@@ -5,7 +5,9 @@ import {
   adminDeleteStaff,
   adminGetDepartments,
   adminGetHodByDepartment,
-  adminDeleteHod 
+  adminDeleteHod,
+  adminResetStaffPassword,
+  adminResetHodPassword
 } from "../api";
 import { toast } from "react-toastify";
 import "./Dashboard.css";
@@ -21,6 +23,15 @@ export default function AdminDashboard() {
   const [hodList, setHodList] = useState([]);
   const [loadingStaff, setLoadingStaff] = useState(true);
   const [loadingHod, setLoadingHod] = useState(true);
+
+  // Password reset modal state
+  const [resetModal, setResetModal] = useState({
+    show: false,
+    type: null, // 'staff' or 'hod'
+    id: null, // staff id or department name
+    name: '',
+    newPassword: ''
+  });
 
   useEffect(() => {
     loadStaffs();
@@ -106,6 +117,47 @@ export default function AdminDashboard() {
       loadHods();
     } catch (err) {
       toast.error("Failed to unassign HOD");
+    }
+  };
+
+  // Password Reset Handlers
+  const openResetModal = (type, id, name) => {
+    setResetModal({
+      show: true,
+      type,
+      id,
+      name,
+      newPassword: ''
+    });
+  };
+
+  const closeResetModal = () => {
+    setResetModal({
+      show: false,
+      type: null,
+      id: null,
+      name: '',
+      newPassword: ''
+    });
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetModal.newPassword || resetModal.newPassword.length < 4) {
+      toast.error("Password must be at least 4 characters");
+      return;
+    }
+
+    try {
+      if (resetModal.type === 'staff') {
+        await adminResetStaffPassword(resetModal.id, resetModal.newPassword, role);
+        toast.success(`Password reset for staff: ${resetModal.name}`);
+      } else if (resetModal.type === 'hod') {
+        await adminResetHodPassword(resetModal.id, resetModal.newPassword, role);
+        toast.success(`Password reset for HOD: ${resetModal.name}`);
+      }
+      closeResetModal();
+    } catch (err) {
+      toast.error("Failed to reset password");
     }
   };
 
@@ -266,6 +318,12 @@ export default function AdminDashboard() {
                             Edit
                           </button>
                           <button
+                            className="btn-info-custom btn-sm-custom me-2"
+                            onClick={() => openResetModal('staff', s._id, s.name)}
+                          >
+                            Reset Password
+                          </button>
+                          <button
                             className="btn-danger-custom btn-sm-custom"
                             onClick={() => handleDelete(s._id)}
                           >
@@ -293,6 +351,47 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* RESET PASSWORD MODAL */}
+      {resetModal.show && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Reset Password</h5>
+                <button type="button" className="btn-close" onClick={closeResetModal}></button>
+              </div>
+              <div className="modal-body">
+                <p>
+                  Reset password for <strong>{resetModal.name}</strong>
+                  {resetModal.type === 'hod' && <span className="badge bg-primary ms-2">HOD</span>}
+                  {resetModal.type === 'staff' && <span className="badge bg-secondary ms-2">Staff</span>}
+                </p>
+                <div className="mb-3">
+                  <label className="form-label">New Password</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    placeholder="Enter new password"
+                    value={resetModal.newPassword}
+                    onChange={(e) => setResetModal({ ...resetModal, newPassword: e.target.value })}
+                    autoFocus
+                  />
+                  <small className="text-muted">Minimum 4 characters</small>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={closeResetModal}>
+                  Cancel
+                </button>
+                <button className="btn btn-primary" onClick={handleResetPassword}>
+                  Reset Password
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

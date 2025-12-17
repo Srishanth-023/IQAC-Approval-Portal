@@ -176,15 +176,21 @@ export default function StaffManagement() {
 
               <div className="form-group-custom">
                 <label className="form-label-custom">Password</label>
-                <input
-                  type="text"
-                  className="form-input-custom"
-                  placeholder="Enter password"
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                />
+                {!editMode ? (
+                  <input
+                    type="text"
+                    className="form-input-custom"
+                    placeholder="Enter password"
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                  />
+                ) : (
+                  <div className="alert-custom alert-info" style={{ margin: '0.5rem 0' }}>
+                    <small>💡 To change password, use "Reset Password" button from the Admin Dashboard.</small>
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem' }}>
