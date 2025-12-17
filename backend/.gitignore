@@ -7,9 +7,11 @@ pnpm-debug.log*
 dist/
 build/
 
-
-
-
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
 
 # Upload folders (if needed)
 media/
