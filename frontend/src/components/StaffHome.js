@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   fetchStaffRequests,
   createRequest,
-  updateRequest,
+  resubmitRequest,
   approvalLetterDownloadUrl,
   getFreshReportUrl,
 } from "../api";
@@ -144,7 +144,7 @@ function StaffHome() {
     }
     
     try {
-      await updateRequest(editingRequest._id, formData);
+      await resubmitRequest(editingRequest._id, formData);
       toast.success("Request updated and resubmitted for approval!");
       setShowEditModal(false);
       setEditingRequest(null);

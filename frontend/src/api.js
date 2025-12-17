@@ -18,6 +18,14 @@ export const createRequest = (formData) =>
   });
 
 // =============================================
+// STAFF: RESUBMIT REQUEST (After Recreation)
+// =============================================
+export const resubmitRequest = (id, formData) =>
+  API.put(`/requests/${id}/resubmit`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+// =============================================
 // STAFF: FETCH THEIR OWN REQUESTS
 // =============================================
 export const fetchStaffRequests = (staffId) =>

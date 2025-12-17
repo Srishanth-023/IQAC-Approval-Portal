@@ -446,6 +446,52 @@ app.post("/api/requests", upload.single("event_report"), async (req, res) => {
 });
 
 // ===============================
+// STAFF REQUEST RESUBMIT (After Recreation)
+// ===============================
+app.put("/api/requests/:id/resubmit", upload.single("event_report"), async (req, res) => {
+  try {
+    const { event_name, event_date, purpose } = req.body;
+    
+    const doc = await Request.findById(req.params.id);
+    if (!doc) return res.status(404).json({ error: "Request not found" });
+    
+    // Verify this request was recreated (currentRole should be null)
+    if (doc.currentRole !== null) {
+      return res.status(400).json({ error: "This request is not awaiting resubmission" });
+    }
+
+    // Update the request details
+    doc.eventName = event_name;
+    doc.eventDate = event_date;
+    doc.purpose = purpose;
+    
+    // Update file if provided
+    if (req.file) {
+      const fileUrl = await uploadToS3(req.file);
+      doc.reportPath = fileUrl;
+    }
+    
+    // Resume workflow: go directly to HOD, skip IQAC
+    // Keep the existing referenceNo and workflowRoles from first approval
+    doc.currentRole = "HOD";
+    doc.overallStatus = "Waiting approval for HOD (Resubmitted)";
+    doc.isCompleted = false;
+    
+    console.log("Request Resubmitted - ID:", req.params.id);
+    console.log("Resuming workflow - Going to HOD");
+    console.log("Existing workflowRoles:", doc.workflowRoles);
+    console.log("Reference Number:", doc.referenceNo);
+    
+    await doc.save();
+    
+    res.json({ message: "Request resubmitted successfully", request: doc });
+  } catch (e) {
+    console.error("Resubmit error:", e);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ===============================
 // GET REQUESTS (STAFF / ROLE BASED)
 // ===============================
 app.get("/api/requests", async (req, res) => {
@@ -589,24 +635,48 @@ app.post("/api/requests/:id/action", async (req, res) => {
     const role = doc.currentRole;
     const now = new Date();
 
-    doc.approvals.push({
-      role,
-      status: action === "approve" ? "Approved" : "Recreated",
-      comments: comments || "",
-      decidedAt: now,
-    });
-
-    // HOD special logic - after HOD approves, move to first workflow role
+    // HOD special logic - check for recreation point BEFORE adding new approval
     if (role === "HOD" && action === "approve") {
       const seq = doc.workflowRoles;
       
       console.log("HOD Approval - workflowRoles:", seq);
       console.log("HOD Approval - request department:", doc.department);
+      console.log("HOD Approval - approvals history BEFORE new approval:", JSON.stringify(doc.approvals));
+      
+      // Check if there was a recreation by a higher authority
+      // Find the last "Recreated" status in approvals (BEFORE adding new HOD approval)
+      let recreationPoint = null;
+      if (seq && seq.length > 0) {
+        for (let i = doc.approvals.length - 1; i >= 0; i--) {
+          if (doc.approvals[i].status === "Recreated" && 
+              seq.includes(doc.approvals[i].role)) {
+            recreationPoint = doc.approvals[i].role;
+            console.log("Found recreation point:", recreationPoint);
+            break;
+          }
+        }
+      }
+      
+      // Now add HOD's approval
+      doc.approvals.push({
+        role,
+        status: "Approved",
+        comments: comments || "",
+        decidedAt: now,
+      });
       
       if (seq && seq.length > 0) {
-        doc.currentRole = seq[0];
-        doc.overallStatus = `Waiting approval for ${seq[0]}`;
-        console.log("HOD Approval - Moving to:", seq[0]);
+        // If there was a recreation by someone in the workflow, resume from that point
+        if (recreationPoint) {
+          doc.currentRole = recreationPoint;
+          doc.overallStatus = `Waiting approval for ${recreationPoint}`;
+          console.log("HOD Approval - Resuming at recreation point:", recreationPoint);
+        } else {
+          // No recreation, start from first workflow role
+          doc.currentRole = seq[0];
+          doc.overallStatus = `Waiting approval for ${seq[0]}`;
+          console.log("HOD Approval - Moving to first role:", seq[0]);
+        }
       } else {
         // No workflow, mark as completed
         doc.currentRole = null;
@@ -618,6 +688,14 @@ app.post("/api/requests/:id/action", async (req, res) => {
       await doc.save();
       return res.json({ message: "HOD Approved" });
     }
+
+    // Add approval for all other roles
+    doc.approvals.push({
+      role,
+      status: action === "approve" ? "Approved" : "Recreated",
+      comments: comments || "",
+      decidedAt: now,
+    });
 
     // IQAC special logic
     if (role === "IQAC" && action === "approve") {
