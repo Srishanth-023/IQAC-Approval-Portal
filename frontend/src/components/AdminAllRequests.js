@@ -80,19 +80,27 @@ export default function AdminAllRequests() {
   return (
     <div className="dashboard-page">
       <div className="dashboard-wrapper">
-        {/* Header */}
-        <div className="dashboard-header">
-          <div className="header-content">
-            <img src={logo} alt="Logo" className="header-logo" />
-            <div className="header-text">
-              <h1>IQAC Approval Portal</h1>
-              <p>Admin Request Management</p>
+        {/* HEADER */}
+        <div className="dashboard-header fade-in">
+          <div className="dashboard-header-accent"></div>
+          <div className="dashboard-header-content">
+            <div className="dashboard-header-left">
+              <div className="dashboard-logo-box">
+                <img src={logo} alt="KITE Logo" className="dashboard-logo" />
+              </div>
+              <div className="dashboard-title-section">
+                <h1>All Requests</h1>
+                <p>Admin Request Management</p>
+              </div>
             </div>
-          </div>
-          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            <button className="btn-secondary-custom" onClick={() => navigate("/admin/dashboard")}>
-              ← Back to Dashboard
-            </button>
+            <div className="dashboard-header-right">
+              <button 
+                className="btn-secondary-custom" 
+                onClick={() => navigate("/admin/dashboard")}
+              >
+                ← Back to Dashboard
+              </button>
+            </div>
           </div>
         </div>
 
