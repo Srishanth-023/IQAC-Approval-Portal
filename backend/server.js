@@ -136,8 +136,11 @@ async function createDefaultRoles() {
 }
 
 // ===============================
-// DEFAULT STAFF USERS (OPTIONAL)
+// DEFAULT STAFF USERS (OPTIONAL) - DISABLED
 // ===============================
+// Commented out to prevent automatic staff creation on server start
+// Staffs should be created through Admin Dashboard instead
+/*
 async function createDefaultStaffs() {
   const staffs = [
     {
@@ -180,6 +183,7 @@ async function createDefaultStaffs() {
     }
   }
 }
+*/
 
 // ===============================
 // DATABASE CONNECT
@@ -189,7 +193,7 @@ mongoose
   .then(async () => {
     console.log("MongoDB Connected (Atlas)");
     await createDefaultRoles();
-    await createDefaultStaffs();
+    // await createDefaultStaffs(); // DISABLED - Create staffs through Admin Dashboard instead
     
     // Fix old requests that have 'HOD' in workflowRoles
     const fixedCount = await Request.updateMany(
