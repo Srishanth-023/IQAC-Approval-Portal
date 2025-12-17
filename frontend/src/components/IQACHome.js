@@ -4,6 +4,7 @@ import {
   actOnRequest,
   approvalLetterUrl,
   getFreshReportUrl,
+  checkReferenceNumber,
 } from "../api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +25,7 @@ function IQACHome() {
   const [refNumbers, setRefNumbers] = useState({}); // per request
   const [workflows, setWorkflows] = useState({}); // per request
   const [comments, setComments] = useState({}); // comments per request
+  const [refWarnings, setRefWarnings] = useState({}); // warnings for duplicate ref numbers
 
   const flowOptions = ["HOD", "PRINCIPAL", "DIRECTOR", "AO", "CEO"];
 
@@ -74,6 +76,30 @@ function IQACHome() {
   };
 
   // ------------------------------------
+  // CHECK REFERENCE NUMBER UNIQUENESS
+  // ------------------------------------
+  const checkRefNumberUniqueness = async (refNumber, requestId) => {
+    if (refNumber.length !== 8) {
+      setRefWarnings((prev) => ({ ...prev, [requestId]: "" }));
+      return;
+    }
+
+    try {
+      const res = await checkReferenceNumber(refNumber);
+      if (res.data.exists) {
+        setRefWarnings((prev) => ({
+          ...prev,
+          [requestId]: `⚠️ This reference number is already used for event: "${res.data.eventName}"`,
+        }));
+      } else {
+        setRefWarnings((prev) => ({ ...prev, [requestId]: "" }));
+      }
+    } catch (err) {
+      console.error("Error checking reference number:", err);
+    }
+  };
+
+  // ------------------------------------
   // APPROVE
   // ------------------------------------
   const handleApprove = async (id) => {
@@ -84,6 +110,11 @@ function IQACHome() {
     // Reference number must be exactly 8 digits
     if (!/^\d{8}$/.test(refNumber)) {
       return toast.error("Reference number must be exactly 8 digits (numbers only).");
+    }
+
+    // Check if reference number is duplicate
+    if (refWarnings[id]) {
+      return toast.error("Cannot approve: Reference number is already in use. Please use a unique number.");
     }
 
     // At least one next approver required
@@ -198,7 +229,7 @@ function IQACHome() {
                   <label className="fw-bold">Reference Number (8 digits only)</label>
                   <input
                     type="text"
-                    className="form-control mb-3"
+                    className={`form-control ${refWarnings[req._id] ? 'border-warning' : ''}`}
                     maxLength="8"
                     placeholder="Enter 8 digit number"
                     value={refNumbers[req._id] || ""}
@@ -209,6 +240,8 @@ function IQACHome() {
                         ...prev,
                         [req._id]: value,
                       }));
+                      // Check uniqueness when user types
+                      checkRefNumberUniqueness(value, req._id);
                     }}
                     onKeyPress={(e) => {
                       // Prevent non-numeric input
@@ -217,7 +250,13 @@ function IQACHome() {
                       }
                     }}
                   />
-                  <small className="text-muted">Only numbers allowed (e.g., 12345678)</small>
+                  {refWarnings[req._id] ? (
+                    <small className="text-warning d-block mb-2">
+                      <strong>{refWarnings[req._id]}</strong>
+                    </small>
+                  ) : (
+                    <small className="text-muted d-block mb-2">Only numbers allowed (e.g., 12345678)</small>
+                  )}
 
                   {/* WORKFLOW ROLES */}
                   <label className="fw-bold">Select Workflow Roles</label>

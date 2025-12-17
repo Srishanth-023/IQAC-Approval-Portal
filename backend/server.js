@@ -492,6 +492,31 @@ app.put("/api/requests/:id/resubmit", upload.single("event_report"), async (req,
 });
 
 // ===============================
+// CHECK REFERENCE NUMBER UNIQUENESS (Must be before /:id routes)
+// ===============================
+app.get("/api/requests/check-reference/:refNumber", async (req, res) => {
+  try {
+    const { refNumber } = req.params;
+    
+    // Find any request with this reference number
+    const existingRequest = await Request.findOne({ referenceNo: refNumber });
+    
+    if (existingRequest) {
+      return res.json({
+        exists: true,
+        eventName: existingRequest.eventName,
+        staffName: existingRequest.staffName,
+      });
+    }
+    
+    res.json({ exists: false });
+  } catch (e) {
+    console.error("Error checking reference number:", e);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ===============================
 // GET REQUESTS (STAFF / ROLE BASED)
 // ===============================
 app.get("/api/requests", async (req, res) => {
@@ -699,6 +724,20 @@ app.post("/api/requests/:id/action", async (req, res) => {
 
     // IQAC special logic
     if (role === "IQAC" && action === "approve") {
+      // Check if reference number is already in use
+      if (refNumber) {
+        const existingRef = await Request.findOne({ 
+          referenceNo: refNumber,
+          _id: { $ne: req.params.id } // Exclude current request
+        });
+        
+        if (existingRef) {
+          return res.status(400).json({ 
+            error: `Reference number ${refNumber} is already assigned to event: "${existingRef.eventName}". Please use a unique reference number.` 
+          });
+        }
+      }
+      
       doc.referenceNo = refNumber;
       doc.workflowRoles = normalizeFlow(flow);
       

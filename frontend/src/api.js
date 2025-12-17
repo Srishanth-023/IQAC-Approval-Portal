@@ -47,6 +47,12 @@ export const fetchRequestsForRole = (role, department = null) =>
 export const getRequestDetail = (id) => API.get(`/requests/${id}`);
 
 // =============================================
+// CHECK REFERENCE NUMBER UNIQUENESS
+// =============================================
+export const checkReferenceNumber = (refNumber) =>
+  API.get(`/requests/check-reference/${refNumber}`);
+
+// =============================================
 // APPROVAL / RECREATE ACTION
 // =============================================
 export const actOnRequest = (id, payload) =>
