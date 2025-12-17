@@ -81,9 +81,9 @@ function IQACHome() {
     const refNumber = refNumbers[id] || "";
     const flowRoles = workflows[id] || [];
 
-    // Reference number required
-    if (refNumber.trim().length !== 8) {
-      return toast.error("Reference number must be 8 characters.");
+    // Reference number must be exactly 8 digits
+    if (!/^\d{8}$/.test(refNumber)) {
+      return toast.error("Reference number must be exactly 8 digits (numbers only).");
     }
 
     // At least one next approver required
@@ -195,19 +195,29 @@ function IQACHome() {
                   <hr />
 
                   {/* REFERENCE NO */}
-                  <label className="fw-bold">Reference Number</label>
+                  <label className="fw-bold">Reference Number (8 digits only)</label>
                   <input
                     type="text"
                     className="form-control mb-3"
                     maxLength="8"
+                    placeholder="Enter 8 digit number"
                     value={refNumbers[req._id] || ""}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      // Only allow numbers
+                      const value = e.target.value.replace(/[^0-9]/g, "");
                       setRefNumbers((prev) => ({
                         ...prev,
-                        [req._id]: e.target.value,
-                      }))
-                    }
+                        [req._id]: value,
+                      }));
+                    }}
+                    onKeyPress={(e) => {
+                      // Prevent non-numeric input
+                      if (!/[0-9]/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
                   />
+                  <small className="text-muted">Only numbers allowed (e.g., 12345678)</small>
 
                   {/* WORKFLOW ROLES */}
                   <label className="fw-bold">Select Workflow Roles</label>
