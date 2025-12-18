@@ -508,14 +508,19 @@ app.put("/api/requests/:id/resubmit", upload.single("event_report"), async (req,
     
     // Resume workflow: go directly to HOD, skip IQAC
     // Keep the existing referenceNo and workflowRoles from first approval
+    // HOD will then route to the original workflow sequence
     doc.currentRole = "HOD";
     doc.overallStatus = "Waiting approval for HOD (Resubmitted)";
     doc.isCompleted = false;
     
+    console.log("=== RESUBMIT DEBUG ===");
     console.log("Request Resubmitted - ID:", req.params.id);
     console.log("Resuming workflow - Going to HOD");
-    console.log("Existing workflowRoles:", doc.workflowRoles);
-    console.log("Reference Number:", doc.referenceNo);
+    console.log("Existing workflowRoles (preserved):", doc.workflowRoles);
+    console.log("Reference Number (preserved):", doc.referenceNo);
+    console.log("Approvals history (preserved):", doc.approvals.map(a => `${a.role}:${a.status}`));
+    console.log("Total HOD approvals before resubmit:", doc.approvals.filter(a => a.role === "HOD" && a.status === "Approved").length);
+    console.log("======================");
     
     await doc.save();
     
@@ -665,13 +670,18 @@ app.post("/api/requests/:id/edit", upload.single("event_report"), async (req, re
       doc.reportPath = fileUrl;
     }
     
-    // Reset the request to go back to HOD for approval
+    // Resubmit to HOD, preserve original workflow and reference number
+    // The HOD will route to the original workflow sequence set by IQAC
     doc.currentRole = "HOD";
-    doc.overallStatus = "Waiting approval for HOD";
+    doc.overallStatus = "Waiting approval for HOD (Resubmitted after recreation)";
     doc.isCompleted = false;
-    // Keep previous approvals for history, but clear workflow roles for fresh start
-    doc.workflowRoles = [];
-    doc.referenceNo = null;
+    // IMPORTANT: Keep workflowRoles and referenceNo from original IQAC approval
+    // Do NOT reset them - HOD needs these to route correctly
+    
+    console.log("Request Re-edited - ID:", req.params.id);
+    console.log("Resuming workflow - Going to HOD");
+    console.log("Preserved workflowRoles:", doc.workflowRoles);
+    console.log("Preserved Reference Number:", doc.referenceNo);
     
     await doc.save();
     
@@ -699,23 +709,22 @@ app.post("/api/requests/:id/action", async (req, res) => {
     if (role === "HOD" && action === "approve") {
       const seq = doc.workflowRoles;
       
-      console.log("HOD Approval - workflowRoles:", seq);
-      console.log("HOD Approval - request department:", doc.department);
-      console.log("HOD Approval - approvals history BEFORE new approval:", JSON.stringify(doc.approvals));
+      console.log("\n" + "=".repeat(80));
+      console.log("HOD APPROVAL DEBUG");
+      console.log("=".repeat(80));
+      console.log("Request ID:", req.params.id);
+      console.log("Request Name:", doc.eventName);
+      console.log("Request Department:", doc.department);
+      console.log("workflowRoles array:", JSON.stringify(seq));
+      console.log("workflowRoles[0] (first role):", seq ? seq[0] : "UNDEFINED");
+      console.log("workflowRoles length:", seq ? seq.length : 0);
+      console.log("Current approvals BEFORE adding HOD:", doc.approvals.map(a => `${a.role}:${a.status}`).join(", "));
       
-      // Check if there was a recreation by a higher authority
-      // Find the last "Recreated" status in approvals (BEFORE adding new HOD approval)
-      let recreationPoint = null;
-      if (seq && seq.length > 0) {
-        for (let i = doc.approvals.length - 1; i >= 0; i--) {
-          if (doc.approvals[i].status === "Recreated" && 
-              seq.includes(doc.approvals[i].role)) {
-            recreationPoint = doc.approvals[i].role;
-            console.log("Found recreation point:", recreationPoint);
-            break;
-          }
-        }
-      }
+      // Check if this is a resubmission after recreation (HOD approving again after staff resubmit)
+      // Count how many times HOD has already approved
+      const hodApprovalCount = doc.approvals.filter(a => a.role === "HOD" && a.status === "Approved").length;
+      console.log("HOD Approval Count (before adding new one):", hodApprovalCount);
+      console.log("Is this a resubmission?", hodApprovalCount > 0 ? "YES" : "NO");
       
       // Now add HOD's approval
       doc.approvals.push({
@@ -725,17 +734,51 @@ app.post("/api/requests/:id/action", async (req, res) => {
         decidedAt: now,
       });
       
+      if (!seq || seq.length === 0) {
+        console.error("CRITICAL ERROR: workflowRoles is empty or undefined!");
+        console.error("This means IQAC did not set workflow properly or it was corrupted");
+        return res.status(500).json({ 
+          error: "Workflow configuration error. Please contact admin.",
+          details: "workflowRoles array is empty" 
+        });
+      }
+      
       if (seq && seq.length > 0) {
-        // If there was a recreation by someone in the workflow, resume from that point
-        if (recreationPoint) {
-          doc.currentRole = recreationPoint;
-          doc.overallStatus = `Waiting approval for ${recreationPoint}`;
-          console.log("HOD Approval - Resuming at recreation point:", recreationPoint);
-        } else {
-          // No recreation, start from first workflow role
+        // If HOD has approved before (this is a resubmission), always start from beginning of workflow
+        // Otherwise, check for recreation point to resume mid-workflow
+        if (hodApprovalCount > 0) {
+          // This is a resubmission - start from the first role in workflow
           doc.currentRole = seq[0];
           doc.overallStatus = `Waiting approval for ${seq[0]}`;
-          console.log("HOD Approval - Moving to first role:", seq[0]);
+          console.log("RESUBMISSION PATH: Setting currentRole to seq[0] =", seq[0]);
+          console.log("Request will now appear in dashboard for:", seq[0]);
+          console.log("=".repeat(80) + "\n");
+        } else {
+          // First time HOD approving - check for recreation point
+          let recreationPoint = null;
+          for (let i = doc.approvals.length - 2; i >= 0; i--) { // -2 because we just added HOD approval
+            if (doc.approvals[i].status === "Recreated" && 
+                seq.includes(doc.approvals[i].role)) {
+              recreationPoint = doc.approvals[i].role;
+              console.log("Found recreation point:", recreationPoint);
+              break;
+            }
+          }
+          
+          if (recreationPoint) {
+            doc.currentRole = recreationPoint;
+            doc.overallStatus = `Waiting approval for ${recreationPoint}`;
+            console.log("FIRST-TIME PATH: Found recreation point, resuming at:", recreationPoint);
+            console.log("Request will now appear in dashboard for:", recreationPoint);
+            console.log("=".repeat(80) + "\n");
+          } else {
+            // No recreation, start from first workflow role
+            doc.currentRole = seq[0];
+            doc.overallStatus = `Waiting approval for ${seq[0]}`;
+            console.log("FIRST-TIME PATH: No recreation point, starting from seq[0] =", seq[0]);
+            console.log("Request will now appear in dashboard for:", seq[0]);
+            console.log("=".repeat(80) + "\n");
+          }
         }
       } else {
         // No workflow, mark as completed
@@ -780,9 +823,15 @@ app.post("/api/requests/:id/action", async (req, res) => {
       
       doc.workflowRoles = normalizeFlow(flow);
       
-      console.log("IQAC Approval - Reference Number:", doc.referenceNo);
-      console.log("IQAC Approval - Flow received:", flow);
-      console.log("IQAC Approval - Normalized workflowRoles:", doc.workflowRoles);
+      console.log("\n" + "=".repeat(80));
+      console.log("IQAC APPROVAL - SETTING WORKFLOW");
+      console.log("=".repeat(80));
+      console.log("Request ID:", req.params.id);
+      console.log("Reference Number:", doc.referenceNo);
+      console.log("Flow received from frontend:", JSON.stringify(flow));
+      console.log("Normalized workflowRoles:", JSON.stringify(doc.workflowRoles));
+      console.log("workflowRoles[0]:", doc.workflowRoles[0]);
+      console.log("=".repeat(80) + "\n");
       
       // After IQAC approval, always send to HOD first (department-specific)
       doc.currentRole = "HOD";
@@ -811,15 +860,28 @@ app.post("/api/requests/:id/action", async (req, res) => {
     // Normal approval flow logic
     const seq = doc.workflowRoles;
     const idx = seq.indexOf(role);
+    
+    console.log("Normal Flow - Current role:", role);
+    console.log("Normal Flow - Workflow sequence:", seq);
+    console.log("Normal Flow - Current role index in workflow:", idx);
+    console.log("Normal Flow - All approvals so far:", doc.approvals.map(a => `${a.role}:${a.status}`));
+
+    if (idx === -1) {
+      // Role not found in workflow - this shouldn't happen
+      console.error("ERROR: Current role not found in workflow sequence!");
+      return res.status(400).json({ error: "Invalid workflow state" });
+    }
 
     if (idx === seq.length - 1) {
       doc.currentRole = null;
       doc.overallStatus = "Completed";
       doc.isCompleted = true;
+      console.log("Normal Flow - Last role in sequence, marking as completed");
     } else {
       doc.currentRole = seq[idx + 1];
       doc.overallStatus = `Waiting approval for ${doc.currentRole}`;
       doc.isCompleted = false;
+      console.log("Normal Flow - Moving to next role:", doc.currentRole);
     }
 
     await doc.save();
