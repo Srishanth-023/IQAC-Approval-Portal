@@ -107,72 +107,74 @@ export default function AdminAllRequests() {
 
         {/* Filter Section */}
         <div className="dashboard-card" style={{ marginBottom: "1rem" }}>
-          <div className="card-header">
-            <h3><BsSearch style={{ marginRight: '0.5rem' }} /> Filter Requests</h3>
+          <div className="dashboard-card-header">
+            <h4 style={{ margin: 0 }}><BsSearch style={{ marginRight: '0.5rem' }} /> Filter Requests</h4>
           </div>
-          <div style={{ padding: "1rem", display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "flex-end" }}>
-            <div className="form-group-custom" style={{ flex: "1", minWidth: "200px", marginBottom: 0 }}>
-              <label className="form-label-custom">Filter by Department</label>
-              <select
-                className="form-input-custom"
-                value={filterDepartment}
-                onChange={(e) => setFilterDepartment(e.target.value)}
+          <div className="dashboard-card-body">
+            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "flex-end", marginBottom: "1rem" }}>
+              <div className="form-group-custom" style={{ flex: "1", minWidth: "200px", marginBottom: 0 }}>
+                <label className="form-label-custom">Filter by Department</label>
+                <select
+                  className="form-input-custom"
+                  value={filterDepartment}
+                  onChange={(e) => setFilterDepartment(e.target.value)}
+                >
+                  <option value="">All Departments</option>
+                  {departments.map((dept) => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group-custom" style={{ flex: "1", minWidth: "200px", marginBottom: 0 }}>
+                <label className="form-label-custom">Filter by Event Name</label>
+                <input
+                  type="text"
+                  className="form-input-custom"
+                  placeholder="Search event name..."
+                  value={filterEventName}
+                  onChange={(e) => setFilterEventName(e.target.value)}
+                />
+              </div>
+              <button
+                className="btn-secondary-custom"
+                onClick={() => {
+                  setFilterDepartment("");
+                  setFilterEventName("");
+                }}
+                style={{ height: "fit-content" }}
               >
-                <option value="">All Departments</option>
-                {departments.map((dept) => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
-              </select>
+                Clear Filters
+              </button>
             </div>
-            <div className="form-group-custom" style={{ flex: "1", minWidth: "200px", marginBottom: 0 }}>
-              <label className="form-label-custom">Filter by Event Name</label>
-              <input
-                type="text"
-                className="form-input-custom"
-                placeholder="Search event name..."
-                value={filterEventName}
-                onChange={(e) => setFilterEventName(e.target.value)}
-              />
+            <div style={{ color: "#64748b", fontSize: "0.875rem" }}>
+              Showing {filteredRequests.length} of {requests.length} requests
             </div>
-            <button
-              className="btn-secondary-custom"
-              onClick={() => {
-                setFilterDepartment("");
-                setFilterEventName("");
-              }}
-              style={{ height: "fit-content" }}
-            >
-              Clear Filters
-            </button>
-          </div>
-          <div style={{ padding: "0 1rem 1rem", color: "#64748b", fontSize: "0.875rem" }}>
-            Showing {filteredRequests.length} of {requests.length} requests
           </div>
         </div>
 
         {/* Main Content */}
         <div className="dashboard-card">
-          <div className="card-header">
-            <h3><BsClipboardData style={{ marginRight: '0.5rem' }} /> All Requests (Admin View)</h3>
-            <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+          <div className="dashboard-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+              <h4 style={{ margin: 0 }}><BsClipboardData style={{ marginRight: '0.5rem' }} /> All Requests (Admin View)</h4>
               <span className="badge-custom badge-pending">{filteredRequests.length} Shown</span>
-              <button
-                className="btn-danger-custom"
-                onClick={handleDeleteAll}
-                disabled={requests.length === 0}
-                style={{ opacity: requests.length === 0 ? 0.5 : 1 }}
-              >
-                <BsTrash style={{ marginRight: '0.5rem' }} /> Delete All Requests
-              </button>
             </div>
+            <button
+              className="btn-danger-custom"
+              onClick={handleDeleteAll}
+              disabled={requests.length === 0}
+              style={{ opacity: requests.length === 0 ? 0.5 : 1 }}
+            >
+              <BsTrash style={{ marginRight: '0.5rem' }} /> Delete All Requests
+            </button>
           </div>
-
-          {isLoading ? (
-            <div className="loading-spinner">
-              <div className="spinner"></div>
-              <p>Loading requests...</p>
-            </div>
-          ) : (
+          <div className="dashboard-card-body">
+            {isLoading ? (
+              <div className="loading-spinner">
+                <div className="spinner"></div>
+                <p>Loading requests...</p>
+              </div>
+            ) : (
             <div className="table-container">
               <table className="dashboard-table">
                 <thead>
@@ -233,7 +235,8 @@ export default function AdminAllRequests() {
                 </tbody>
               </table>
             </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* FOOTER */}
