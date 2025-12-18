@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { approvalLetterUrl } from "../api";
 import "./Dashboard.css";
 import logo from '../assets/kite-logo.png';
+import { BsArrowLeft, BsFileEarmarkText, BsDownload } from "react-icons/bs";
 
 function ApprovalLetter() {
   const { id } = useParams();
@@ -24,23 +25,30 @@ function ApprovalLetter() {
     <div className="dashboard-page">
       <div className="dashboard-wrapper">
         {/* Header */}
-        <div className="dashboard-header">
-          <div className="header-content">
-            <img src={logo} alt="Logo" className="header-logo" />
-            <div className="header-text">
-              <h1>IQAC Approval Portal</h1>
-              <p>Final Approval Report</p>
+        <div className="dashboard-header fade-in">
+          <div className="dashboard-header-accent"></div>
+          <div className="dashboard-header-content">
+            <div className="dashboard-header-left">
+              <div className="dashboard-logo-box">
+                <img src={logo} alt="KITE Logo" className="dashboard-logo" />
+              </div>
+              <div className="dashboard-title-section">
+                <h1>IQAC Approval Portal</h1>
+                <p>Final Approval Report</p>
+              </div>
+            </div>
+            <div className="dashboard-header-right">
+              <button className="btn-secondary-custom" onClick={() => navigate(-1)}>
+                <BsArrowLeft style={{ marginRight: '0.5rem' }} /> Back
+              </button>
             </div>
           </div>
-          <button className="btn-secondary-custom" onClick={() => navigate(-1)}>
-            ← Back
-          </button>
         </div>
 
         {/* Main Content */}
-        <div className="dashboard-card">
+        <div className="dashboard-card fade-in">
           <div className="card-header" style={{ justifyContent: "center" }}>
-            <h3>📄 Final Approval Report</h3>
+            <h3><BsFileEarmarkText style={{ marginRight: '0.5rem' }} /> Final Approval Report</h3>
           </div>
 
           {url && (
@@ -63,7 +71,7 @@ function ApprovalLetter() {
                   onClick={downloadReport}
                   style={{ padding: "0.75rem 2rem" }}
                 >
-                  📥 Download Report
+                  <BsDownload style={{ marginRight: '0.5rem' }} /> Download Report
                 </button>
               </div>
             </div>
@@ -71,8 +79,15 @@ function ApprovalLetter() {
         </div>
 
         {/* Footer */}
-        <div className="dashboard-footer">
-          <p>© 2025 KITE Group of Institutions. All rights reserved.</p>
+        <div className="dashboard-footer fade-in">
+          <div className="dashboard-footer-content">
+            <div className="dashboard-footer-brand">
+              <span>IQAC Approval Portal</span>
+            </div>
+            <div className="dashboard-footer-text">
+              © 2025 KGiSL Institute of Technology. All rights reserved.
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -900,6 +900,17 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
     const doc = await Request.findById(req.params.id);
     if (!doc) return res.status(404).send("Not found");
 
+    // Read and convert logo to base64
+    const path = require("path");
+    const logoPath = path.join(__dirname, "..", "kite-logo.webp");
+    let logoBase64 = "";
+    try {
+      const logoBuffer = fs.readFileSync(logoPath);
+      logoBase64 = `data:image/webp;base64,${logoBuffer.toString("base64")}`;
+    } catch (err) {
+      console.error("Logo not found:", err.message);
+    }
+
     // Show ALL approvals in chronological order (not just unique roles)
     const rows = (doc.approvals || [])
       .map((a) => {
@@ -924,23 +935,77 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
       <html>
       <head>
         <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          html, body {
+            height: 100%;
+          }
           body {
             font-family: Arial, sans-serif;
-            margin: 40px;
             color: #333;
+            padding: 20px;
+            position: relative;
+            min-height: 100vh;
+            border: 2px solid #000;
           }
-          h2 {
-            color: #2c3e50;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
+          .letterhead {
+            border: 2px solid #000;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+          }
+          .letterhead-logo {
+            width: 80px;
+            height: auto;
+            margin-right: 20px;
+          }
+          .letterhead-content {
+            flex: 1;
+            text-align: center;
+          }
+          .letterhead h1 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 2px;
+            color: #000;
+          }
+          .letterhead h2 {
+            font-size: 14px;
+            font-weight: normal;
+            margin-bottom: 8px;
+            color: #000;
+          }
+          .letterhead h3 {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 2px;
+            color: #000;
+          }
+          .letterhead h4 {
+            font-size: 14px;
+            font-weight: bold;
+            color: #000;
+          }
+          .content-section {
+            margin: 30px 20px;
           }
           h3 {
-            color: #34495e;
+            color: #2c3e50;
             margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 16px;
+          }
+          .info-grid {
+            margin: 15px 0;
           }
           p {
             margin: 8px 0;
             line-height: 1.6;
+            font-size: 14px;
           }
           table {
             width: 100%;
@@ -950,9 +1015,15 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
           th {
             background-color: #3498db;
             color: white;
-            padding: 12px;
+            padding: 10px;
             text-align: left;
             border: 1px solid #ddd;
+            font-size: 13px;
+          }
+          td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            font-size: 12px;
           }
           hr {
             border: 0;
@@ -960,41 +1031,61 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
             background: #ddd;
             margin: 20px 0;
           }
-          .header {
-            text-align: center;
-            margin-bottom: 30px;
+          .footer {
+            text-align: right;
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 11px;
+            color: #666;
+            font-style: italic;
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h2>Event Approval Report</h2>
+        <div class="letterhead">
+          ${logoBase64 ? `<img src="${logoBase64}" class="letterhead-logo" alt="KITE Logo" />` : ''}
+          <div class="letterhead-content">
+            <h1>KGISL INSTITUTE OF TECHNOLOGY,</h1>
+            <h2>COIMBATORE -35, TN, INDIA</h2>
+            <h3>ACADEMIC - FORMS</h3>
+            <h4>EVENT APPROVAL REPORT</h4>
+          </div>
         </div>
         
-        <h3>Reference No: ${doc.referenceNo || "-"}</h3>
-        <h3>Event: ${doc.eventName}</h3>
-        <p><b>Staff:</b> ${doc.staffName}</p>
-        <p><b>Department:</b> ${doc.department}</p>
-        <p><b>Event Date:</b> ${doc.eventDate}</p>
-        <p><b>Purpose:</b> ${doc.purpose}</p>
-        <p><b>Status:</b> ${doc.overallStatus}</p>
-        
-        <hr/>
-        
-        <h3>Approval Timeline</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Comments</th>
-              <th>Date & Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows}
-          </tbody>
-        </table>
+        <div class="content-section">
+          <h3>Reference No: ${doc.referenceNo || "-"}</h3>
+          <h3>Event: ${doc.eventName}</h3>
+          
+          <div class="info-grid">
+            <p><b>Staff:</b> ${doc.staffName}</p>
+            <p><b>Department:</b> ${doc.department}</p>
+            <p><b>Event Date:</b> ${doc.eventDate}</p>
+            <p><b>Purpose:</b> ${doc.purpose}</p>
+            <p><b>Status:</b> ${doc.overallStatus}</p>
+          </div>
+          
+          <hr/>
+          
+          <h3>Approval Timeline</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Comments</th>
+                <th>Date & Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+          
+          <div class="footer">
+            Powered by IPS Tech Community
+          </div>
+        </div>
       </body>
       </html>
     `;
@@ -1003,7 +1094,7 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
     const file = { content: htmlContent };
     const options = { 
       format: 'A4',
-      margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' }
+      margin: { top: '40px', right: '40px', bottom: '40px', left: '40px' }
     };
 
     const pdfBuffer = await htmlPdf.generatePdf(file, options);

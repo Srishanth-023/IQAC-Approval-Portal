@@ -9,6 +9,11 @@ import { toast } from "react-toastify";
 import useDisableBack from "./useDisableBack";
 import "./Dashboard.css";
 import logo from '../assets/kite-logo.png';
+import { 
+  BsClipboardData, BsFileEarmarkText, BsCheckCircle, BsSearch, 
+  BsArrowRepeat, BsExclamationTriangle, BsEye, BsChatLeftText,
+  BsClockHistory, BsInfoCircle
+} from "react-icons/bs";
 
 function RoleDashboard() {
   // ------------------------------------------
@@ -149,7 +154,7 @@ function RoleDashboard() {
         <div className="dashboard-wrapper">
           <div className="dashboard-card">
             <div className="dashboard-card-header danger">
-              <h4>⚠️ Unauthorized Access</h4>
+              <h4><BsExclamationTriangle style={{ marginRight: '0.5rem' }} /> Unauthorized Access</h4>
             </div>
             <div className="dashboard-card-body" style={{ textAlign: 'center', padding: '3rem' }}>
               <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>You do not have permission to access this page.</p>
@@ -210,7 +215,7 @@ function RoleDashboard() {
         {/* REQUESTS TABLE */}
         <div className="dashboard-card fade-in">
           <div className="dashboard-card-header">
-            <h4>📋 Pending Requests</h4>
+            <h4><BsClipboardData style={{ marginRight: '0.5rem' }} /> Pending Requests</h4>
             <p>Requests awaiting your approval</p>
           </div>
           
@@ -267,7 +272,7 @@ function RoleDashboard() {
           <div className="dashboard-card-body">
             {filteredRequests.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-state-icon">🔍</div>
+                <div className="empty-state-icon"><BsSearch size={48} /></div>
                 <h4>No requests found</h4>
                 <p>{requests.length === 0 ? "All caught up! No requests are waiting for your approval." : "No requests match your filter criteria."}</p>
               </div>
@@ -298,7 +303,7 @@ function RoleDashboard() {
                               className="btn-primary-custom btn-sm-custom"
                               onClick={() => handleViewReport(r._id)}
                             >
-                              📄 View
+                              <BsFileEarmarkText style={{ marginRight: '0.25rem' }} /> View
                             </button>
                           ) : (
                             <span style={{ color: '#94a3b8' }}>No File</span>
@@ -320,19 +325,19 @@ function RoleDashboard() {
                               onClick={() => handleViewRemarks(r)}
                               title="View previous authority remarks"
                             >
-                              👁️ Remarks
+                              <BsEye style={{ marginRight: '0.25rem' }} /> Remarks
                             </button>
                             <button
                               className="btn-success-custom btn-sm-custom"
                               onClick={() => handleApprove(r._id)}
                             >
-                              ✅ Approve
+                              <BsCheckCircle style={{ marginRight: '0.25rem' }} /> Approve
                             </button>
                             <button
                               className="btn-warning-custom btn-sm-custom"
                               onClick={() => handleRecreate(r._id)}
                             >
-                              🔄 Recreate
+                              <BsArrowRepeat style={{ marginRight: '0.25rem' }} /> Recreate
                             </button>
                           </div>
                         </td>
@@ -370,7 +375,7 @@ function RoleDashboard() {
             style={{ maxWidth: '700px' }}
           >
             <div className="modal-header-custom">
-              <h5>💬 Previous Authority Remarks</h5>
+              <h5><BsChatLeftText style={{ marginRight: '0.5rem' }} /> Previous Authority Remarks</h5>
               <button
                 className="modal-close-btn"
                 onClick={() => setShowRemarksModal(false)}
@@ -381,7 +386,7 @@ function RoleDashboard() {
             <div className="modal-body-custom">
               <div className="alert-custom alert-info" style={{ marginBottom: '1.5rem' }}>
                 <div>
-                  <h6 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>📋 Event Details</h6>
+                  <h6 style={{ fontWeight: 700, marginBottom: '0.75rem' }}><BsClipboardData style={{ marginRight: '0.25rem' }} /> Event Details</h6>
                   <p style={{ margin: '0.25rem 0' }}><strong>Event Name:</strong> {selectedRequestRemarks.eventName}</p>
                   <p style={{ margin: '0.25rem 0' }}><strong>Staff:</strong> {selectedRequestRemarks.staffName}</p>
                   <p style={{ margin: '0.25rem 0' }}><strong>Department:</strong> {selectedRequestRemarks.department}</p>
@@ -389,11 +394,11 @@ function RoleDashboard() {
                 </div>
               </div>
               
-              <h6 style={{ fontWeight: 700, marginBottom: '1rem', color: '#1e293b' }}>📜 Approval History & Remarks</h6>
+              <h6 style={{ fontWeight: 700, marginBottom: '1rem', color: '#1e293b' }}><BsClockHistory style={{ marginRight: '0.25rem' }} /> Approval History & Remarks</h6>
               
               {selectedRequestRemarks.approvals.length === 0 ? (
                 <div className="alert-custom alert-warning">
-                  <span>ℹ️ No remarks or comments have been provided yet.</span>
+                  <span><BsInfoCircle style={{ marginRight: '0.25rem' }} /> No remarks or comments have been provided yet.</span>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>

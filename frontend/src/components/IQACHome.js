@@ -11,6 +11,10 @@ import { useNavigate } from "react-router-dom";
 import useDisableBack from "./useDisableBack";
 import "./Dashboard.css";
 import logo from '../assets/kite-logo.png';
+import { 
+  BsClipboardData, BsFileEarmarkText, BsCheckCircle, BsSearch, 
+  BsArrowRepeat, BsExclamationTriangle 
+} from "react-icons/bs";
 
 const flowOptions = ["HOD", "PRINCIPAL", "DIRECTOR", "AO", "CEO"];
 
@@ -254,7 +258,7 @@ function IQACHome() {
           <div className="dashboard-card fade-in">
             <div className="dashboard-card-body">
               <div className="empty-state">
-                <div className="empty-state-icon">🔍</div>
+                <div className="empty-state-icon"><BsSearch size={48} /></div>
                 <h4>No requests found</h4>
                 <p>{requests.length === 0 ? "All caught up! No requests are waiting for IQAC review." : "No requests match your filter criteria."}</p>
               </div>
@@ -272,7 +276,7 @@ function IQACHome() {
                   <div className="dashboard-card-body">
                     {/* Basic Details */}
                     <h5 style={{ fontWeight: 700, color: '#1e3a8a', marginBottom: '1rem' }}>
-                      📋 {req.eventName}
+                      <BsClipboardData style={{ marginRight: '0.5rem' }} /> {req.eventName}
                     </h5>
                     <div style={{ marginBottom: '1rem' }}>
                       <p style={{ margin: '0.25rem 0', color: '#475569' }}>
@@ -297,7 +301,7 @@ function IQACHome() {
                         onClick={() => handleViewReport(req._id)}
                         style={{ marginBottom: '1rem' }}
                       >
-                        📄 View Uploaded Report
+                        <BsFileEarmarkText style={{ marginRight: '0.25rem' }} /> View Uploaded Report
                       </button>
                     )}
 
@@ -308,7 +312,7 @@ function IQACHome() {
                         onClick={() => window.open(approvalLetterUrl(req._id), "_blank")}
                         style={{ marginBottom: '1rem' }}
                       >
-                        ✅ Generate Approval Report
+                        <BsCheckCircle style={{ marginRight: '0.25rem' }} /> Generate Approval Report
                       </button>
                     )}
 
@@ -428,14 +432,14 @@ function IQACHome() {
                             onClick={() => handleApprove(req._id)}
                             style={{ flex: 1 }}
                           >
-                            ✅ Approve
+                            <BsCheckCircle style={{ marginRight: '0.25rem' }} /> Approve
                           </button>
                           <button
                             className="btn-warning-custom btn-sm-custom"
                             onClick={() => handleRecreate(req._id)}
                             style={{ flex: 1 }}
                           >
-                            🔄 Recreate
+                            <BsArrowRepeat style={{ marginRight: '0.25rem' }} /> Recreate
                           </button>
                         </div>
                       </div>

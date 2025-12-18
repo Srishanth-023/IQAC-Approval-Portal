@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import "./Login.css";
 import logo from '../assets/kite-logo.png';
 import ipslogo from '../assets/ips.webp';
+import { BsShieldLock, BsKey, BsArrowLeft } from "react-icons/bs";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -59,7 +60,7 @@ export default function AdminLogin() {
         {/* Login Card */}
         <div className="login-main-card">
           <div className="login-card-header">
-            <h1 className="login-card-title">🔐 Admin Login</h1>
+            <h1 className="login-card-title"><BsShieldLock style={{ marginRight: '0.5rem' }} /> Admin Login</h1>
             <p className="login-card-subtitle">Enter administrator credentials to access the portal</p>
           </div>
 
@@ -80,7 +81,7 @@ export default function AdminLogin() {
               </div>
 
               <button type="submit" className="login-submit-btn">
-                🔑 Login
+                <BsKey style={{ marginRight: '0.5rem' }} /> Login
               </button>
 
               <div style={{ textAlign: "center", paddingTop: "1rem", borderTop: "1px solid #e2e8f0" }}>
@@ -93,7 +94,7 @@ export default function AdminLogin() {
                     boxShadow: "0 10px 15px -3px rgba(100, 116, 139, 0.3)"
                   }}
                 >
-                  ← Back to User Login
+                  <BsArrowLeft style={{ marginRight: '0.5rem' }} /> Back to User Login
                 </button>
               </div>
             </form>

@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import "./Dashboard.css";
 import logo from '../assets/kite-logo.png';
+import { BsSearch, BsClipboardData, BsTrash, BsFileEarmarkText, BsArrowLeft } from "react-icons/bs";
 
 export default function AdminAllRequests() {
   const navigate = useNavigate();
@@ -98,7 +99,7 @@ export default function AdminAllRequests() {
                 className="btn-secondary-custom" 
                 onClick={() => navigate("/admin/dashboard")}
               >
-                ← Back to Dashboard
+                <BsArrowLeft style={{ marginRight: '0.5rem' }} /> Back to Dashboard
               </button>
             </div>
           </div>
@@ -107,7 +108,7 @@ export default function AdminAllRequests() {
         {/* Filter Section */}
         <div className="dashboard-card" style={{ marginBottom: "1rem" }}>
           <div className="card-header">
-            <h3>🔍 Filter Requests</h3>
+            <h3><BsSearch style={{ marginRight: '0.5rem' }} /> Filter Requests</h3>
           </div>
           <div style={{ padding: "1rem", display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "flex-end" }}>
             <div className="form-group-custom" style={{ flex: "1", minWidth: "200px", marginBottom: 0 }}>
@@ -152,7 +153,7 @@ export default function AdminAllRequests() {
         {/* Main Content */}
         <div className="dashboard-card">
           <div className="card-header">
-            <h3>📋 All Requests (Admin View)</h3>
+            <h3><BsClipboardData style={{ marginRight: '0.5rem' }} /> All Requests (Admin View)</h3>
             <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
               <span className="badge-custom badge-pending">{filteredRequests.length} Shown</span>
               <button
@@ -161,7 +162,7 @@ export default function AdminAllRequests() {
                 disabled={requests.length === 0}
                 style={{ opacity: requests.length === 0 ? 0.5 : 1 }}
               >
-                🗑️ Delete All Requests
+                <BsTrash style={{ marginRight: '0.5rem' }} /> Delete All Requests
               </button>
             </div>
           </div>
@@ -214,7 +215,7 @@ export default function AdminAllRequests() {
                             style={{ fontSize: "0.8rem", padding: "0.4rem 0.8rem" }}
                             onClick={() => window.open(approvalLetterUrl(req._id), "_blank")}
                           >
-                            📄 View Letter
+                            <BsFileEarmarkText style={{ marginRight: '0.25rem' }} /> View Letter
                           </button>
                         </td>
                         <td>
@@ -223,7 +224,7 @@ export default function AdminAllRequests() {
                             style={{ fontSize: "0.8rem", padding: "0.4rem 0.8rem" }}
                             onClick={() => handleDelete(req._id)}
                           >
-                            🗑️ Delete
+                            <BsTrash style={{ marginRight: '0.25rem' }} /> Delete
                           </button>
                         </td>
                       </tr>
