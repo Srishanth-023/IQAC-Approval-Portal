@@ -132,76 +132,84 @@ export default function StaffManagement() {
             <p>{editMode ? "Update staff information" : "Create a new staff account"}</p>
           </div>
           <div className="dashboard-card-body">
-            <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>
-              <div className="form-group-custom">
-                <label className="form-label-custom">Name</label>
-                <input
-                  type="text"
-                  className="form-input-custom"
-                  placeholder="Enter staff name"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group-custom">
-                <label className="form-label-custom">Email</label>
-                <input
-                  type="email"
-                  className="form-input-custom"
-                  placeholder="Enter email address"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group-custom">
-                <label className="form-label-custom">Department</label>
-                <select
-                  className="form-input-custom"
-                  name="department"
-                  value={form.department}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select Department</option>
-                  {departments.map((d) => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group-custom">
-                <label className="form-label-custom">Password</label>
-                {!editMode ? (
-                  <input
-                    type="text"
-                    className="form-input-custom"
-                    placeholder="Enter password"
-                    name="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    required
-                  />
-                ) : (
-                  <div className="alert-custom alert-info" style={{ margin: '0.5rem 0' }}>
-                    <small><BsLightbulb style={{ marginRight: '0.25rem' }} /> To change password, use "Reset Password" button from the Admin Dashboard.</small>
+            <form onSubmit={handleSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
+                {/* Left Column */}
+                <div>
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">Name</label>
+                    <input
+                      type="text"
+                      className="form-input-custom"
+                      placeholder="Enter staff name"
+                      name="name"
+                      value={form.name}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
-                )}
+
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">Email</label>
+                    <input
+                      type="email"
+                      className="form-input-custom"
+                      placeholder="Enter email address"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div>
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">Department</label>
+                    <select
+                      className="form-input-custom"
+                      name="department"
+                      value={form.department}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">Password</label>
+                    {!editMode ? (
+                      <input
+                        type="text"
+                        className="form-input-custom"
+                        placeholder="Enter password"
+                        name="password"
+                        value={form.password}
+                        onChange={handleChange}
+                        required
+                      />
+                    ) : (
+                      <div className="alert-custom alert-info" style={{ margin: '0.5rem 0' }}>
+                        <small><BsLightbulb style={{ marginRight: '0.25rem' }} /> To change password, use "Reset Password" button from the Admin Dashboard.</small>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <button className="btn-primary-custom" type="submit" style={{ flex: 1 }}>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                <button className="btn-primary-custom btn-sm-custom" type="submit">
                   {editMode ? "Update Staff" : "Create Staff"}
                 </button>
                 {editMode && (
                   <button 
                     type="button"
-                    className="btn-secondary-custom"
+                    className="btn-secondary-custom btn-sm-custom"
                     onClick={() => {
                       setForm({ name: "", email: "", department: "", password: "" });
                       setEditMode(false);
