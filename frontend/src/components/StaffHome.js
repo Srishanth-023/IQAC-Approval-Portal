@@ -11,6 +11,10 @@ import { useNavigate } from "react-router-dom";
 import useDisableBack from "./useDisableBack";
 import "./Dashboard.css";
 import logo from '../assets/kite-logo.png';
+import { 
+  BsFileEarmarkText, BsPencilSquare, BsClipboardData, BsExclamationTriangle, 
+  BsCheckCircle, BsInbox, BsLightbulb, BsBan, BsJournalText 
+} from "react-icons/bs";
 
 function StaffHome() {
   // ----------------------------------------
@@ -296,7 +300,7 @@ function StaffHome() {
         {/* CREATE REQUEST */}
         <div className="dashboard-card mb-4 fade-in">
           <div className="dashboard-card-header">
-            <h4>📝 Create Event Request</h4>
+            <h4><BsJournalText style={{ marginRight: '0.5rem' }} /> Create Event Request</h4>
             <p>Submit a new event for approval</p>
           </div>
           <div className="dashboard-card-body">
@@ -367,7 +371,7 @@ function StaffHome() {
         {/* REQUEST LIST */}
         <div className="dashboard-card fade-in">
           <div className="dashboard-card-header">
-            <h4>📋 Your Requests</h4>
+            <h4><BsClipboardData style={{ marginRight: '0.5rem' }} /> Your Requests</h4>
             <p>Track your submitted event requests</p>
           </div>
           <div className="dashboard-card-body">
@@ -378,7 +382,7 @@ function StaffHome() {
               </div>
             ) : requests.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-state-icon">📭</div>
+                <div className="empty-state-icon"><BsInbox size={48} /></div>
                 <h4>No requests submitted yet</h4>
                 <p>Create your first event request above to get started</p>
               </div>
@@ -410,7 +414,7 @@ function StaffHome() {
                               className="btn-secondary-custom btn-sm-custom w-100"
                               onClick={() => handleViewReport(req._id)}
                             >
-                              📄 View Uploaded File
+                              <BsFileEarmarkText style={{ marginRight: '0.25rem' }} /> View Uploaded File
                             </button>
                           )}
 
@@ -420,13 +424,13 @@ function StaffHome() {
                                 className="btn-danger-custom btn-sm-custom w-100"
                                 onClick={() => handleViewRejection(req)}
                               >
-                                ⚠️ View Rejection Details
+                                <BsExclamationTriangle style={{ marginRight: '0.25rem' }} /> View Rejection Details
                               </button>
                               <button
                                 className="btn-primary-custom btn-sm-custom w-100"
                                 onClick={() => handleEditRequest(req)}
                               >
-                                ✏️ Edit & Resubmit
+                                <BsPencilSquare style={{ marginRight: '0.25rem' }} /> Edit & Resubmit
                               </button>
                             </>
                           )}
@@ -443,7 +447,7 @@ function StaffHome() {
                                 document.body.removeChild(link);
                               }}
                             >
-                              ✅ Generate Approval Report
+                              <BsCheckCircle style={{ marginRight: '0.25rem' }} /> Generate Approval Report
                             </button>
                           )}
                         </div>
@@ -474,7 +478,7 @@ function StaffHome() {
         <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
           <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '700px' }}>
             <div className="modal-header-custom">
-              <h5>✏️ Edit & Resubmit Request</h5>
+              <h5><BsPencilSquare style={{ marginRight: '0.5rem' }} /> Edit & Resubmit Request</h5>
               <button className="modal-close-btn" onClick={() => setShowEditModal(false)}>✕</button>
             </div>
             <form onSubmit={handleSubmitEdit}>
@@ -563,26 +567,26 @@ function StaffHome() {
         <div className="modal-overlay" onClick={() => setShowRejectionModal(false)}>
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header-custom danger">
-              <h5>⚠️ Rejection Details</h5>
+              <h5><BsExclamationTriangle style={{ marginRight: '0.5rem' }} /> Rejection Details</h5>
               <button className="modal-close-btn" onClick={() => setShowRejectionModal(false)}>✕</button>
             </div>
             <div className="modal-body-custom">
               <div className="alert-custom alert-info" style={{ marginBottom: '1rem' }}>
                 <div>
-                  <h6 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>📋 Event Details</h6>
+                  <h6 style={{ fontWeight: 700, marginBottom: '0.5rem' }}><BsClipboardData style={{ marginRight: '0.25rem' }} /> Event Details</h6>
                   <p style={{ margin: '0.25rem 0' }}><strong>Event Name:</strong> {selectedRejection.eventName}</p>
                   <p style={{ margin: '0' }}><strong>Event Date:</strong> {selectedRejection.eventDate}</p>
                 </div>
               </div>
               <div className="alert-custom alert-danger" style={{ marginBottom: '1rem' }}>
                 <div>
-                  <h6 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>🚫 Current Status</h6>
+                  <h6 style={{ fontWeight: 700, marginBottom: '0.5rem' }}><BsBan style={{ marginRight: '0.25rem' }} /> Current Status</h6>
                   <p style={{ margin: '0', fontWeight: 600 }}>{selectedRejection.status}</p>
                 </div>
               </div>
               <div className="alert-custom alert-warning">
                 <div style={{ width: '100%' }}>
-                  <h6 style={{ fontWeight: 700, marginBottom: '0.75rem' }}>📝 Rejection Details</h6>
+                  <h6 style={{ fontWeight: 700, marginBottom: '0.75rem' }}><BsJournalText style={{ marginRight: '0.25rem' }} /> Rejection Details</h6>
                   {selectedRejection.rejections && selectedRejection.rejections.length > 0 ? (
                     selectedRejection.rejections.map((rej, idx) => (
                       <div key={idx} style={{ 
@@ -634,7 +638,7 @@ function StaffHome() {
         <div className="modal-overlay" onClick={() => setShowDuplicateModal(false)}>
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header-custom" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' }}>
-              <h5>⚠️ Duplicate Event Detected</h5>
+              <h5><BsExclamationTriangle style={{ marginRight: '0.5rem' }} /> Duplicate Event Detected</h5>
               <button className="modal-close-btn" onClick={() => setShowDuplicateModal(false)}>✕</button>
             </div>
             <div className="modal-body-custom">
@@ -642,7 +646,7 @@ function StaffHome() {
                 <p style={{ marginBottom: '0.5rem' }}><strong>{duplicateMessage}</strong></p>
                 <hr style={{ margin: '0.75rem 0', borderColor: '#fbbf24' }} />
                 <p style={{ margin: 0, fontSize: '0.875rem' }}>
-                  💡 <strong>Suggestion:</strong> Please choose a different event name or modify the purpose to make it unique.
+                  <BsLightbulb style={{ marginRight: '0.25rem' }} /> <strong>Suggestion:</strong> Please choose a different event name or modify the purpose to make it unique.
                 </p>
               </div>
             </div>

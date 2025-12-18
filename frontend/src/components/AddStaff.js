@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import "./Dashboard.css";
 import logo from '../assets/kite-logo.png';
+import { BsPencilSquare, BsPlusCircle, BsLightbulb, BsPeople, BsArrowLeft, BsTrash } from "react-icons/bs";
 
 export default function StaffManagement() {
   const navigate = useNavigate();
@@ -118,7 +119,7 @@ export default function StaffManagement() {
                 className="btn-secondary-custom" 
                 onClick={() => navigate("/admin/dashboard")}
               >
-                ← Back to Dashboard
+                <BsArrowLeft style={{ marginRight: '0.5rem' }} /> Back to Dashboard
               </button>
             </div>
           </div>
@@ -127,7 +128,7 @@ export default function StaffManagement() {
         {/* ADD/EDIT STAFF FORM */}
         <div className="dashboard-card mb-4 fade-in">
           <div className="dashboard-card-header">
-            <h4>{editMode ? "✏️ Edit Staff" : "➕ Add New Staff"}</h4>
+            <h4>{editMode ? <><BsPencilSquare style={{ marginRight: '0.5rem' }} /> Edit Staff</> : <><BsPlusCircle style={{ marginRight: '0.5rem' }} /> Add New Staff</>}</h4>
             <p>{editMode ? "Update staff information" : "Create a new staff account"}</p>
           </div>
           <div className="dashboard-card-body">
@@ -188,7 +189,7 @@ export default function StaffManagement() {
                   />
                 ) : (
                   <div className="alert-custom alert-info" style={{ margin: '0.5rem 0' }}>
-                    <small>💡 To change password, use "Reset Password" button from the Admin Dashboard.</small>
+                    <small><BsLightbulb style={{ marginRight: '0.25rem' }} /> To change password, use "Reset Password" button from the Admin Dashboard.</small>
                   </div>
                 )}
               </div>
@@ -218,7 +219,7 @@ export default function StaffManagement() {
         {/* STAFF TABLE */}
         <div className="dashboard-card fade-in">
           <div className="dashboard-card-header">
-            <h4>👥 All Staff Members</h4>
+            <h4><BsPeople style={{ marginRight: '0.5rem' }} /> All Staff Members</h4>
             <p>Manage existing staff accounts</p>
           </div>
           <div className="dashboard-card-body">
@@ -238,7 +239,7 @@ export default function StaffManagement() {
                     <tr>
                       <td colSpan="5">
                         <div className="empty-state">
-                          <div className="empty-state-icon">👥</div>
+                          <div className="empty-state-icon"><BsPeople size={48} /></div>
                           <h4>No staff members yet</h4>
                           <p>Add your first staff member using the form above</p>
                         </div>

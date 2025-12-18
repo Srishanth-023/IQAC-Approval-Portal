@@ -1,5 +1,6 @@
 import React from "react";
 import "./Dashboard.css";
+import { BsClipboardData, BsExclamationTriangle, BsLightbulb } from "react-icons/bs";
 
 function IQACWorkflowSummary({ referenceNo, selectedRoles }) {
   return (
@@ -12,7 +13,7 @@ function IQACWorkflowSummary({ referenceNo, selectedRoles }) {
       boxShadow: "0 4px 12px rgba(59, 130, 246, 0.15)"
     }}>
       <h5 style={{ color: "#1e3a8a", fontWeight: "700", marginBottom: "1rem", fontSize: "1.1rem" }}>
-        📋 IQAC Approval Summary
+        <BsClipboardData style={{ marginRight: '0.5rem' }} /> IQAC Approval Summary
       </h5>
 
       <p style={{ color: "#475569", marginBottom: "0.75rem" }}>
@@ -34,7 +35,7 @@ function IQACWorkflowSummary({ referenceNo, selectedRoles }) {
       </p>
 
       {selectedRoles.length === 0 ? (
-        <p style={{ color: "#ef4444", fontStyle: "italic" }}>⚠️ No roles selected.</p>
+        <p style={{ color: "#ef4444", fontStyle: "italic" }}><BsExclamationTriangle style={{ marginRight: '0.25rem' }} /> No roles selected.</p>
       ) : (
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
           {selectedRoles.map((r, i) => (
@@ -57,7 +58,7 @@ function IQACWorkflowSummary({ referenceNo, selectedRoles }) {
         background: "rgba(255,255,255,0.7)",
         borderRadius: "0.5rem"
       }}>
-        💡 Roles will follow default sequence:
+        <BsLightbulb style={{ marginRight: '0.25rem' }} /> Roles will follow default sequence:
         <br />
         <strong>HOD → Principal → Director → AO → CEO</strong>
       </p>

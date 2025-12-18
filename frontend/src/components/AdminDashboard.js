@@ -12,6 +12,7 @@ import {
 import { toast } from "react-toastify";
 import "./Dashboard.css";
 import logo from '../assets/kite-logo.png';
+import { BsPersonPlus, BsPersonBadge, BsClipboardData, BsPeople } from "react-icons/bs";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -198,21 +199,21 @@ export default function AdminDashboard() {
         <div className="row g-4 mb-4">
           <div className="col-md-4">
             <div className="action-card fade-in" onClick={() => navigate("/admin/add-staff")}>
-              <div className="action-card-icon">👤</div>
+              <div className="action-card-icon"><BsPersonPlus size={32} /></div>
               <h4>Add Staff</h4>
               <p>Create new staff accounts</p>
             </div>
           </div>
           <div className="col-md-4">
             <div className="action-card fade-in" onClick={() => navigate("/admin/add-hod")}>
-              <div className="action-card-icon">👨‍💼</div>
+              <div className="action-card-icon"><BsPersonBadge size={32} /></div>
               <h4>Add HOD</h4>
               <p>Assign HOD for each department</p>
             </div>
           </div>
           <div className="col-md-4">
             <div className="action-card fade-in" onClick={() => navigate("/admin/all-requests")}>
-              <div className="action-card-icon">📋</div>
+              <div className="action-card-icon"><BsClipboardData size={32} /></div>
               <h4>All Requests</h4>
               <p>View every request submitted by staff</p>
             </div>
@@ -222,7 +223,7 @@ export default function AdminDashboard() {
         {/* ALL HODs TABLE */}
         <div className="dashboard-card mb-4 fade-in">
           <div className="dashboard-card-header">
-            <h4>👨‍💼 All HODs</h4>
+            <h4><BsPersonBadge style={{ marginRight: '0.5rem' }} /> All HODs</h4>
             <p>Department head assignments</p>
           </div>
           <div className="dashboard-card-body">
@@ -283,7 +284,7 @@ export default function AdminDashboard() {
         {/* ALL STAFFS TABLE */}
         <div className="dashboard-card fade-in">
           <div className="dashboard-card-header">
-            <h4>👥 All Staff Members</h4>
+            <h4><BsPeople style={{ marginRight: '0.5rem' }} /> All Staff Members</h4>
             <p>Registered staff accounts</p>
           </div>
           <div className="dashboard-card-body">
@@ -303,7 +304,7 @@ export default function AdminDashboard() {
                     <tr>
                       <td colSpan="5" className="text-center py-4">
                         <div className="empty-state">
-                          <div className="empty-state-icon">👥</div>
+                          <div className="empty-state-icon"><BsPeople size={48} /></div>
                           <h4>No staff members yet</h4>
                           <p>Add your first staff member to get started</p>
                         </div>
