@@ -305,7 +305,7 @@ function StaffHome() {
           </div>
           <div className="dashboard-card-body">
             <form onSubmit={submit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', alignItems: 'start' }}>
                 {/* Left Column */}
                 <div>
                   <div className="form-group-custom">
@@ -364,7 +364,7 @@ function StaffHome() {
                       value={purpose}
                       onChange={(e) => setPurpose(e.target.value)}
                       required
-                      style={{ height: '180px' }}
+                      style={{ height: '320px' }}
                     />
                   </div>
                 </div>
