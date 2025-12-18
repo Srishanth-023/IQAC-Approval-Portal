@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import "./Dashboard.css";
 import logo from '../assets/kite-logo.png';
+import { BsBuilding, BsLightbulb, BsPencilSquare, BsPlusCircle, BsShieldLock, BsArrowLeft } from "react-icons/bs";
 
 export default function AddHod() {
   const navigate = useNavigate();
@@ -186,7 +187,7 @@ export default function AddHod() {
                 className="btn-secondary-custom" 
                 onClick={() => navigate("/admin/dashboard")}
               >
-                ← Back to Dashboard
+                <BsArrowLeft style={{ marginRight: '0.5rem' }} /> Back to Dashboard
               </button>
             </div>
           </div>
@@ -209,7 +210,7 @@ export default function AddHod() {
             <div key={department} className="dashboard-card mb-4 fade-in">
               <div className="dashboard-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h4>🏛️ {department}</h4>
+                  <h4><BsBuilding style={{ marginRight: '0.5rem' }} /> {department}</h4>
                   <p>Department HOD Configuration</p>
                 </div>
                 {isEdit ? (
@@ -270,13 +271,13 @@ export default function AddHod() {
                       marginBottom: '1rem',
                       color: '#1e40af'
                     }}>
-                      <small>💡 To change password, use "Reset Password" button below.</small>
+                      <small><BsLightbulb style={{ marginRight: '0.25rem' }} /> To change password, use "Reset Password" button below.</small>
                     </div>
                   )}
 
                   <div style={{ display: 'flex', gap: '0.75rem' }}>
                     <button className="btn-primary-custom" type="submit" style={{ flex: 1 }}>
-                      {isEdit ? "✏️ Update HOD" : "➕ Create HOD"}
+                      {isEdit ? <><BsPencilSquare style={{ marginRight: '0.5rem' }} /> Update HOD</> : <><BsPlusCircle style={{ marginRight: '0.5rem' }} /> Create HOD</>}
                     </button>
                     {isEdit && (
                       <button
@@ -284,7 +285,7 @@ export default function AddHod() {
                         className="btn-info-custom"
                         onClick={() => openResetModal(department, hod.name)}
                       >
-                        🔐 Reset Password
+                        <BsShieldLock style={{ marginRight: '0.5rem' }} /> Reset Password
                       </button>
                     )}
                   </div>

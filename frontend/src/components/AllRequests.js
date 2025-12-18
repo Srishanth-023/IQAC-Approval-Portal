@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchAllRequests } from "../api";
 import "./Dashboard.css";
 import logo from '../assets/kite-logo.png';
+import { BsClipboardData, BsArrowLeft } from "react-icons/bs";
 
 function AllRequests() {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ function AllRequests() {
                 className="btn-secondary-custom" 
                 onClick={() => navigate(-1)}
               >
-                ← Back
+                <BsArrowLeft style={{ marginRight: '0.5rem' }} /> Back
               </button>
             </div>
           </div>
@@ -67,7 +68,7 @@ function AllRequests() {
         {/* Main Content */}
         <div className="dashboard-card">
           <div className="card-header">
-            <h3>📋 All Requests</h3>
+            <h3><BsClipboardData style={{ marginRight: '0.5rem' }} /> All Requests</h3>
             <span className="badge-custom badge-pending">{requests.length} Total</span>
           </div>
 

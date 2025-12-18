@@ -2,18 +2,18 @@
 .login-page-container {
   min-height: 100vh;
   background: linear-gradient(to bottom, #f1f5f9, #e2e8f0);
-  padding: 1.5rem 1rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
 }
 
 .login-page-wrapper {
-  max-width: 80rem;
+  max-width: 56rem;
   margin: 0 auto;
   width: 100%;
   display: flex;
   flex-direction: column;
-  flex: 1;
+  gap: 1.5rem;
 }
 
 /* Header Styles */
@@ -21,8 +21,8 @@
   background: linear-gradient(to right, #eff6ff, #e0e7ff);
   border-radius: 1rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
   overflow: hidden;
+  width: 100%;
 }
 
 .login-header-accent {
@@ -111,11 +111,8 @@
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   border-radius: 1rem;
   overflow: hidden;
-  flex: 1;
   display: flex;
   flex-direction: column;
-  max-width: 28rem;
-  margin: 0 auto;
   width: 100%;
 }
 
@@ -202,7 +199,7 @@
 /* Footer Styles */
 .login-footer {
   margin-top: auto;
-  padding-top: 1rem;
+  width: 100%;
 }
 
 .login-footer-card {
@@ -275,7 +272,11 @@
 /* Responsive Design - Tablet and Desktop */
 @media (min-width: 640px) {
   .login-page-container {
-    padding: 2.5rem 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .login-page-wrapper {
+    gap: 1.5rem;
   }
 
   .login-header-content {
@@ -337,7 +338,7 @@
   }
 
   .login-footer {
-    margin-top: 3rem;
+    margin-top: auto;
   }
 
   .login-footer-card {
