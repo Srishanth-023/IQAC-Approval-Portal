@@ -4,6 +4,7 @@ import {
   adminGetHodByDepartment,
   adminCreateHod,
   adminUpdateHod,
+  adminResetHodPassword,
 } from "../api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +19,14 @@ export default function AddHod() {
   const [departments, setDepartments] = useState([]);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Password reset modal state
+  const [resetModal, setResetModal] = useState({
+    show: false,
+    department: null,
+    name: '',
+    newPassword: ''
+  });
 
   // Load departments + HODs on mount
   useEffect(() => {
@@ -119,6 +128,40 @@ export default function AddHod() {
     } catch (e) {
       console.error(e);
       toast.error(e.response?.data?.error || "Failed to save HOD");
+    }
+  };
+
+  // Password Reset Handlers
+  const openResetModal = (department, name) => {
+    setResetModal({
+      show: true,
+      department,
+      name,
+      newPassword: ''
+    });
+  };
+
+  const closeResetModal = () => {
+    setResetModal({
+      show: false,
+      department: null,
+      name: '',
+      newPassword: ''
+    });
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetModal.newPassword || resetModal.newPassword.length < 4) {
+      toast.error("Password must be at least 4 characters");
+      return;
+    }
+
+    try {
+      await adminResetHodPassword(resetModal.department, resetModal.newPassword, role);
+      toast.success(`Password reset for HOD: ${resetModal.name}`);
+      closeResetModal();
+    } catch (err) {
+      toast.error("Failed to reset password");
     }
   };
 
@@ -227,18 +270,69 @@ export default function AddHod() {
                       marginBottom: '1rem',
                       color: '#1e40af'
                     }}>
-                      <small>💡 To change password, use "Reset Password" button from the Admin Dashboard.</small>
+                      <small>💡 To change password, use "Reset Password" button below.</small>
                     </div>
                   )}
 
-                  <button className="btn-primary-custom w-100" type="submit">
-                    {isEdit ? "✏️ Update HOD" : "➕ Create HOD"}
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button className="btn-primary-custom" type="submit" style={{ flex: 1 }}>
+                      {isEdit ? "✏️ Update HOD" : "➕ Create HOD"}
+                    </button>
+                    {isEdit && (
+                      <button
+                        type="button"
+                        className="btn-info-custom"
+                        onClick={() => openResetModal(department, hod.name)}
+                      >
+                        🔐 Reset Password
+                      </button>
+                    )}
+                  </div>
                 </form>
               </div>
             </div>
           );
         })}
+
+        {/* RESET PASSWORD MODAL */}
+        {resetModal.show && (
+          <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Reset Password</h5>
+                  <button type="button" className="btn-close" onClick={closeResetModal}></button>
+                </div>
+                <div className="modal-body">
+                  <p>
+                    Reset password for <strong>{resetModal.name}</strong>
+                    <span className="badge bg-primary ms-2">HOD - {resetModal.department}</span>
+                  </p>
+                  <div className="mb-3">
+                    <label className="form-label">New Password</label>
+                    <input
+                      type="password"
+                      className="form-control"
+                      placeholder="Enter new password"
+                      value={resetModal.newPassword}
+                      onChange={(e) => setResetModal({ ...resetModal, newPassword: e.target.value })}
+                      autoFocus
+                    />
+                    <small className="text-muted">Minimum 4 characters</small>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-secondary" onClick={closeResetModal}>
+                    Cancel
+                  </button>
+                  <button className="btn btn-primary" onClick={handleResetPassword}>
+                    Reset Password
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* FOOTER */}
         <div className="dashboard-footer fade-in">

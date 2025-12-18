@@ -256,12 +256,20 @@ export default function AdminDashboard() {
                           {h.hod ? "Edit" : "Assign"}
                         </button>
                         {h.hod && (
-                          <button
-                            className="btn-danger-custom btn-sm-custom"
-                            onClick={() => handleUnassignHod(h.department)}
-                          >
-                            Unassign
-                          </button>
+                          <>
+                            <button
+                              className="btn-info-custom btn-sm-custom me-2"
+                              onClick={() => openResetModal('hod', h.department, h.hod.name)}
+                            >
+                              Reset Password
+                            </button>
+                            <button
+                              className="btn-danger-custom btn-sm-custom"
+                              onClick={() => handleUnassignHod(h.department)}
+                            >
+                              Unassign
+                            </button>
+                          </>
                         )}
                       </td>
                     </tr>
