@@ -357,19 +357,6 @@ function IQACHome() {
                             Select Workflow Roles
                           </label>
                           <div style={{ 
-                            background: '#fef3c7',
-                            padding: '0.75rem',
-                            borderRadius: '0.375rem',
-                            marginBottom: '0.5rem',
-                            border: '1px solid #fbbf24'
-                          }}>
-                            <small style={{ color: '#92400e', fontSize: '0.85rem', display: 'block' }}>
-                              ⚠️ <strong>Important:</strong> Select all required roles for approval. 
-                              For normal flow, select HOD → Principal → Director → AO → CEO. 
-                              If you don't select Principal, the request will skip Principal and go directly to Director!
-                            </small>
-                          </div>
-                          <div style={{ 
                             background: '#f8fafc', 
                             borderRadius: '0.5rem', 
                             padding: '0.75rem',
@@ -404,10 +391,6 @@ function IQACHome() {
                               </label>
                             ))}
                           </div>
-                          <small style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block' }}>
-                            ✅ Recommended: Select all roles (HOD, Principal, Director, AO, CEO) for complete approval workflow.
-                            HOD is automatically included and approval order is: HOD → Principal → Director → AO → CEO
-                          </small>
                         </div>
 
                         {/* Comments */}
