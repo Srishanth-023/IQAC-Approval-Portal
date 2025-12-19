@@ -87,6 +87,7 @@
   border-radius: 9999px;
   margin-right: 0.25rem;
   flex-shrink: 0;
+  transform: translateY(-6px);
 }
 
 .login-header-subtitle {

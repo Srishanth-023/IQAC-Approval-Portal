@@ -202,7 +202,7 @@ export default function StaffManagement() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
                 <button className="btn-primary-custom btn-sm-custom" type="submit">
                   {editMode ? "Update Staff" : "Create Staff"}
                 </button>
