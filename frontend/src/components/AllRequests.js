@@ -75,7 +75,7 @@ function AllRequests() {
           {loading ? (
             <div className="loading-spinner">
               <div className="spinner"></div>
-              <p>Loading requests...</p>
+              <p className="loading-text">Loading requests...</p>
             </div>
           ) : (
             <div className="table-container">

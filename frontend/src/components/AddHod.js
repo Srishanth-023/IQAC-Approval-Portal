@@ -197,7 +197,7 @@ export default function AddHod() {
         {loading && (
           <div className="loading-spinner fade-in">
             <div className="spinner"></div>
-            <p>Loading departments...</p>
+            <p className="loading-text">Loading departments...</p>
           </div>
         )}
 
