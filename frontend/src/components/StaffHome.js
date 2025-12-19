@@ -304,66 +304,77 @@ function StaffHome() {
             <p>Submit a new event for approval</p>
           </div>
           <div className="dashboard-card-body">
-            <form onSubmit={submit} style={{ maxWidth: '600px' }}>
-              <div className="form-group-custom">
-                <label className="form-label-custom">Event Name</label>
-                <input
-                  className="form-input-custom"
-                  placeholder="Enter event name"
-                  value={eventName}
-                  onChange={(e) => setEventName(e.target.value)}
-                  required
-                />
+            <form onSubmit={submit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                {/* Left Column */}
+                <div>
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">Event Name</label>
+                    <input
+                      className="form-input-custom"
+                      placeholder="Enter event name"
+                      value={eventName}
+                      onChange={(e) => setEventName(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">Event Date</label>
+                    <input
+                      className="form-input-custom"
+                      type="date"
+                      value={eventDate}
+                      onChange={(e) => setEventDate(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">Upload Report (PDF)</label>
+                    <input
+                      className="form-input-custom"
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+                            toast.error("Only PDF files are allowed. Please upload a PDF file.");
+                            e.target.value = "";
+                            setReport(null);
+                            return;
+                          }
+                          setReport(file);
+                        }
+                      }}
+                      required
+                    />
+                    <small style={{ color: '#64748b', fontSize: '0.8125rem' }}>Only PDF files are accepted</small>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div>
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">Purpose of Event</label>
+                    <textarea
+                      className="form-input-custom form-textarea-custom"
+                      placeholder="Describe the purpose of this event"
+                      value={purpose}
+                      onChange={(e) => setPurpose(e.target.value)}
+                      required
+                      style={{ height: '180px' }}
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="form-group-custom">
-                <label className="form-label-custom">Event Date</label>
-                <input
-                  className="form-input-custom"
-                  type="date"
-                  value={eventDate}
-                  onChange={(e) => setEventDate(e.target.value)}
-                  required
-                />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <button type="submit" className="btn-primary-custom btn-sm-custom" disabled={isCreating} style={{ minWidth: '150px' }}>
+                  {isCreating ? "Submitting..." : "Submit Request"}
+                </button>
               </div>
-
-              <div className="form-group-custom">
-                <label className="form-label-custom">Purpose of Event</label>
-                <textarea
-                  className="form-input-custom form-textarea-custom"
-                  placeholder="Describe the purpose of this event"
-                  value={purpose}
-                  onChange={(e) => setPurpose(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-group-custom">
-                <label className="form-label-custom">Upload Report (PDF)</label>
-                <input
-                  className="form-input-custom"
-                  type="file"
-                  accept=".pdf,application/pdf"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-                        toast.error("Only PDF files are allowed. Please upload a PDF file.");
-                        e.target.value = "";
-                        setReport(null);
-                        return;
-                      }
-                      setReport(file);
-                    }
-                  }}
-                  required
-                />
-                <small style={{ color: '#64748b', fontSize: '0.8125rem' }}>Only PDF files are accepted</small>
-              </div>
-
-              <button type="submit" className="btn-primary-custom w-100" disabled={isCreating}>
-                {isCreating ? "Submitting..." : "Submit Request"}
-              </button>
             </form>
           </div>
         </div>
