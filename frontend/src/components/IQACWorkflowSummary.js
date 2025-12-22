@@ -58,9 +58,9 @@ function IQACWorkflowSummary({ referenceNo, selectedRoles }) {
         background: "rgba(255,255,255,0.7)",
         borderRadius: "0.5rem"
       }}>
-        <BsLightbulb style={{ marginRight: '0.25rem' }} /> Roles will follow default sequence:
+        <BsLightbulb style={{ marginRight: '0.25rem' }} /> Workflow flow order:
         <br />
-        <strong>HOD → Principal → Director → AO → CEO</strong>
+        <strong>Staff → HOD → IQAC → Selected Roles → Completed</strong>
       </p>
     </div>
   );

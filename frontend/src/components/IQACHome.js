@@ -16,7 +16,7 @@ import {
   BsArrowRepeat, BsExclamationTriangle 
 } from "react-icons/bs";
 
-const flowOptions = ["HOD", "PRINCIPAL", "DIRECTOR", "AO", "CEO"];
+const flowOptions = ["PRINCIPAL", "DIRECTOR", "AO", "CEO"];
 
 function IQACHome() {
   const role = "IQAC";
@@ -44,6 +44,20 @@ function IQACHome() {
       setLoading(true);
       const res = await fetchRequestsForRole("IQAC");
       setRequests(res.data);
+      
+      // Pre-fill reference numbers and workflows for resubmitted requests
+      const newRefNumbers = {};
+      const newWorkflows = {};
+      res.data.forEach(req => {
+        if (req.referenceNo) {
+          newRefNumbers[req._id] = req.referenceNo;
+        }
+        if (req.workflowRoles && req.workflowRoles.length > 0) {
+          newWorkflows[req._id] = req.workflowRoles;
+        }
+      });
+      setRefNumbers(prev => ({ ...prev, ...newRefNumbers }));
+      setWorkflows(prev => ({ ...prev, ...newWorkflows }));
     } catch (err) {
       toast.error("Failed to load requests");
     } finally {

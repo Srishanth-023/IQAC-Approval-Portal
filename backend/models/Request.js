@@ -24,8 +24,8 @@ const requestSchema = new mongoose.Schema(
     purpose: { type: String, required: true },
     reportPath: { type: String, default: null },
 
-    currentRole: { type: String, default: "IQAC" },
-    overallStatus: { type: String, default: "Waiting approval for IQAC" },
+    currentRole: { type: String, default: "HOD" },
+    overallStatus: { type: String, default: "Waiting approval for HOD" },
     referenceNo: { type: String, default: null },
 
     workflowRoles: [{ type: String }], // ex: ["HOD","PRINCIPAL","DIRECTOR"]

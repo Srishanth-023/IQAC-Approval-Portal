@@ -4,7 +4,7 @@ A comprehensive event approval workflow management system built with the MERN st
 
 ## Overview
 
-The IQAC Approval Portal streamlines the event approval process across multiple hierarchical levels. Staff members can submit event requests that flow through various approval stages including IQAC, HOD, Principal, Director, AO, and CEO based on the workflow configuration.
+The IQAC Approval Portal streamlines the event approval process across multiple hierarchical levels. Staff members can submit event requests that flow through various approval stages including HOD, IQAC, Principal, Director, AO, and CEO based on the workflow configuration.
 
 ## Features
 
@@ -171,9 +171,9 @@ Staff accounts must be created through the Admin Dashboard.
 
 ## Approval Workflow
 
-1. **Staff** submits event request → Sent to **IQAC**
-2. **IQAC** assigns reference number and selects workflow → Sent to **HOD**
-3. **HOD** approves → Sent to first selected role (e.g., Principal)
+1. **Staff** submits event request → Sent to **HOD**
+2. **HOD** approves → Sent to **IQAC**
+3. **IQAC** assigns reference number and selects workflow → Sent to first selected role (e.g., Principal)
 4. **Higher Authorities** (Principal/Director/AO/CEO) approve sequentially
 5. **Request Completed** → Approval report generated
 
@@ -181,7 +181,7 @@ Staff accounts must be created through the Admin Dashboard.
 - Any authority can request recreation with comments
 - Request goes back to Staff with recreation status
 - Staff edits and resubmits
-- Request resumes from HOD → Returns to the authority who requested recreation
+- Request resumes from HOD → IQAC → Returns to the authority who requested recreation
 - Continues through remaining workflow
 
 ## Key Features in Detail

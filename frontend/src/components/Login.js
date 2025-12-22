@@ -104,8 +104,8 @@ export default function Login() {
                   <option value="">Select Role</option>
                   <option value="ADMIN">Admin</option>
                   <option value="STAFF">Staff</option>
-                  <option value="IQAC">IQAC</option>
                   <option value="HOD">HOD</option>
+                  <option value="IQAC">IQAC</option>
                   <option value="PRINCIPAL">Principal</option>
                   <option value="DIRECTOR">Director</option>
                   <option value="AO">AO</option>

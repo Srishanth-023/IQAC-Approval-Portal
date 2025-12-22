@@ -27,7 +27,7 @@ const lineStyle = (completed) => ({
 });
 
 function WorkflowTimeline({ currentRole, workflow }) {
-  const fullFlow = ["STAFF", "IQAC", ...workflow, "Completed"];
+  const fullFlow = ["STAFF", "HOD", "IQAC", ...workflow, "Completed"];
 
   const getCurrentIndex = () => {
     if (!currentRole || currentRole === null) return fullFlow.length - 1;
