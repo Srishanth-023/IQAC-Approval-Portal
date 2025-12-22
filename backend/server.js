@@ -137,7 +137,6 @@ async function createDefaultRoles() {
       // Hash the password before storing
       const hashedPassword = await bcrypt.hash(r.password, 10);
       await User.create({ ...r, password: hashedPassword });
-      console.log(`Created default user for role: ${r.role}`);
     }
   }
 }
@@ -186,7 +185,6 @@ async function createDefaultStaffs() {
     const existing = await Staff.findOne({ email: s.email });
     if (!existing) {
       await Staff.create(s);
-      console.log(`Created default staff: ${s.name}`);
     }
   }
 }
@@ -215,9 +213,6 @@ mongoose
         );
         cleanedCount++;
       }
-    }
-    if (cleanedCount > 0) {
-      console.log(`Cleaned ${cleanedCount} staff records by trimming whitespace`);
     }
   })
   .catch((err) => {
@@ -363,7 +358,6 @@ app.post("/api/auth/login", async (req, res) => {
     // OTHER ROLES (IQAC, PRINCIPAL, DIRECTOR, AO, CEO, ADMIN)
     const user = await User.findOne({ role });
     if (!user) {
-      console.log(`User not found for role: ${role}`);
       return res.status(400).json({ error: "Role not found" });
     }
 
@@ -375,8 +369,6 @@ app.post("/api/auth/login", async (req, res) => {
       // Legacy plain text comparison (for existing accounts)
       passwordMatch = user.password === password;
     }
-
-    console.log(`Login attempt for ${role}: User found - ${user.name}`);
 
     if (!passwordMatch)
       return res.status(400).json({ error: "Invalid password" });
@@ -468,7 +460,7 @@ app.post("/api/requests", upload.single("event_report"), async (req, res) => {
 
     res.json({ message: "Request created", request: newReq });
   } catch (e) {
-    console.log(e);
+    console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -505,15 +497,6 @@ app.put("/api/requests/:id/resubmit", upload.single("event_report"), async (req,
     doc.currentRole = "HOD";
     doc.overallStatus = "Waiting approval for HOD (Resubmitted)";
     doc.isCompleted = false;
-    
-    console.log("=== RESUBMIT DEBUG ===");
-    console.log("Request Resubmitted - ID:", req.params.id);
-    console.log("Resuming workflow - Going to HOD");
-    console.log("Existing workflowRoles (preserved):", doc.workflowRoles);
-    console.log("Reference Number (preserved):", doc.referenceNo);
-    console.log("Approvals history (preserved):", doc.approvals.map(a => `${a.role}:${a.status}`));
-    console.log("Total HOD approvals before resubmit:", doc.approvals.filter(a => a.role === "HOD" && a.status === "Approved").length);
-    console.log("======================");
     
     await doc.save();
     
@@ -564,14 +547,7 @@ app.get("/api/requests", async (req, res) => {
       filter.department = req.query.department; // Direct match (departments are stored exactly as in enum)
     }
 
-    console.log("GET /api/requests filter:", filter);
-    console.log("Query params - role:", req.query.current_role, "department:", req.query.department);
-
     const requests = await Request.find(filter).sort({ createdAt: -1 });
-    console.log("Found requests:", requests.length);
-    if (requests.length > 0) {
-      console.log("First request department:", requests[0].department, "currentRole:", requests[0].currentRole);
-    }
 
     // Generate pre-signed URLs for each request
     const requestsWithUrls = await Promise.all(
@@ -646,7 +622,7 @@ app.post("/api/requests/:id/edit", upload.single("event_report"), async (req, re
     const status = (doc.overallStatus || "").toLowerCase();
     const canEdit = status.includes("recreat") || status.includes("rejected") || doc.currentRole === null;
     
-    console.log("Edit request - Status:", doc.overallStatus, "Can edit:", canEdit);
+
     
     if (!canEdit) {
       return res.status(400).json({ error: "Only rejected requests can be edited" });
@@ -670,11 +646,6 @@ app.post("/api/requests/:id/edit", upload.single("event_report"), async (req, re
     doc.isCompleted = false;
     // IMPORTANT: Keep workflowRoles and referenceNo from original IQAC approval
     // Do NOT reset them - HOD needs these to route correctly
-    
-    console.log("Request Re-edited - ID:", req.params.id);
-    console.log("Resuming workflow - Going to HOD");
-    console.log("Preserved workflowRoles:", doc.workflowRoles);
-    console.log("Preserved Reference Number:", doc.referenceNo);
     
     await doc.save();
     
@@ -700,14 +671,6 @@ app.post("/api/requests/:id/action", async (req, res) => {
 
     // HOD special logic - always forward to IQAC
     if (role === "HOD" && action === "approve") {
-      console.log("\n" + "=".repeat(80));
-      console.log("HOD APPROVAL - FORWARDING TO IQAC");
-      console.log("=".repeat(80));
-      console.log("Request ID:", req.params.id);
-      console.log("Request Name:", doc.eventName);
-      console.log("Department:", doc.department);
-      console.log("=".repeat(80) + "\n");
-      
       // Add HOD's approval
       doc.approvals.push({
         role,
@@ -755,16 +718,6 @@ app.post("/api/requests/:id/action", async (req, res) => {
       
       doc.workflowRoles = normalizeFlow(flow);
       
-      console.log("\n" + "=".repeat(80));
-      console.log("IQAC APPROVAL - SETTING WORKFLOW");
-      console.log("=".repeat(80));
-      console.log("Request ID:", req.params.id);
-      console.log("Reference Number:", doc.referenceNo);
-      console.log("Flow received from frontend:", JSON.stringify(flow));
-      console.log("Normalized workflowRoles:", JSON.stringify(doc.workflowRoles));
-      console.log("workflowRoles[0]:", doc.workflowRoles[0]);
-      console.log("=".repeat(80) + "\n");
-      
       // After IQAC approval, move to first role in workflow (if exists)
       if (doc.workflowRoles && doc.workflowRoles.length > 0) {
         doc.currentRole = doc.workflowRoles[0];
@@ -800,10 +753,7 @@ app.post("/api/requests/:id/action", async (req, res) => {
     const seq = doc.workflowRoles;
     const idx = seq.indexOf(role);
     
-    console.log("Normal Flow - Current role:", role);
-    console.log("Normal Flow - Workflow sequence:", seq);
-    console.log("Normal Flow - Current role index in workflow:", idx);
-    console.log("Normal Flow - All approvals so far:", doc.approvals.map(a => `${a.role}:${a.status}`));
+
 
     if (idx === -1) {
       // Role not found in workflow - this shouldn't happen
@@ -815,12 +765,10 @@ app.post("/api/requests/:id/action", async (req, res) => {
       doc.currentRole = null;
       doc.overallStatus = "Completed";
       doc.isCompleted = true;
-      console.log("Normal Flow - Last role in sequence, marking as completed");
     } else {
       doc.currentRole = seq[idx + 1];
       doc.overallStatus = `Waiting approval for ${doc.currentRole}`;
       doc.isCompleted = false;
-      console.log("Normal Flow - Moving to next role:", doc.currentRole);
     }
 
     await doc.save();
@@ -1038,18 +986,11 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
 
     const approvalLetterBuffer = await htmlPdf.generatePdf(file, options);
 
-    console.log(`Generated approval letter: ${approvalLetterBuffer.length} bytes`);
-
     // Merge with original uploaded PDF if it exists
     let finalPdfBuffer = approvalLetterBuffer;
     
     if (doc.reportPath) {
       try {
-        console.log("\n=== PDF MERGE STARTING ===");
-        console.log("Original report key:", doc.reportPath);
-        console.log("Request ID:", doc._id);
-        console.log("Reference No:", doc.referenceNo);
-        
         // Get the key - reportPath is already just the key (e.g., "reports/12345_file.pdf")
         const key = doc.reportPath;
         
@@ -1059,11 +1000,7 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
           Key: key,
         });
         
-        console.log("Generating S3 signed URL...");
         const signedUrl = await getSignedUrl(s3, command, { expiresIn: 300 }); // 5 minutes
-        console.log("Signed URL generated successfully");
-        
-        console.log("Downloading original PDF from S3...");
         
         // Download the original PDF with better error handling
         const response = await axios.get(signedUrl, {
@@ -1078,54 +1015,32 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
         
         const originalPdfBuffer = Buffer.from(response.data);
         
-        console.log(`Downloaded original PDF: ${originalPdfBuffer.length} bytes`);
-        
         // Merge PDFs using pdf-lib
-        console.log("Creating merged PDF document...");
         const mergedPdf = await PDFDocument.create();
         
         // Load and add original report PDF pages FIRST
-        console.log("Loading original report PDF...");
         const originalPdf = await PDFDocument.load(originalPdfBuffer);
-        console.log(`Original PDF has ${originalPdf.getPageCount()} pages`);
         
         const originalPages = await mergedPdf.copyPages(originalPdf, originalPdf.getPageIndices());
         for (const page of originalPages) {
           mergedPdf.addPage(page);
         }
-        console.log(`✓ Added ${originalPages.length} original report pages (FIRST)`);
         
         // Load and append approval letter PDF pages SECOND
-        console.log("Loading approval letter PDF...");
         const approvalPdf = await PDFDocument.load(approvalLetterBuffer);
-        console.log(`Approval PDF has ${approvalPdf.getPageCount()} pages`);
         
         const approvalPages = await mergedPdf.copyPages(approvalPdf, approvalPdf.getPageIndices());
         for (const page of approvalPages) {
           mergedPdf.addPage(page);
         }
-        console.log(`✓ Added ${approvalPages.length} approval letter pages (SECOND)`);
         
         // Save merged PDF
-        console.log("Saving merged PDF...");
         const mergedPdfBytes = await mergedPdf.save();
         finalPdfBuffer = Buffer.from(mergedPdfBytes);
-        
-        console.log(`✓ Merged PDF created: ${finalPdfBuffer.length} bytes`);
-        console.log(`Total pages in merged PDF: ${mergedPdf.getPageCount()}`);
-        console.log("=== PDF MERGE SUCCESS ===\n");
       } catch (mergeError) {
-        console.error("\n=== PDF MERGE ERROR ===");
-        console.error("Error type:", mergeError.name);
-        console.error("Error message:", mergeError.message);
-        console.error("Stack trace:", mergeError.stack);
-        console.error("Falling back to approval letter only");
-        console.error("=== END ERROR ===\n");
         // If merge fails, just send the approval letter
         finalPdfBuffer = approvalLetterBuffer;
       }
-    } else {
-      console.log("⚠ No original report found (reportPath is null/empty) - sending approval letter only");
     }
 
     // Check if download parameter is present
@@ -1496,7 +1411,7 @@ app.post("/api/admin/hash-all-passwords", requireAdmin, async (req, res) => {
       if (!user.password.startsWith('$2b$') && !user.password.startsWith('$2a$')) {
         const hashedPassword = await bcrypt.hash(user.password, 10);
         await User.updateOne({ _id: user._id }, { password: hashedPassword });
-        console.log(`Hashed password for ${user.role}: ${user.name}`);
+
         hashedCount++;
       }
     }
@@ -1508,7 +1423,7 @@ app.post("/api/admin/hash-all-passwords", requireAdmin, async (req, res) => {
       if (!staff.password.startsWith('$2b$') && !staff.password.startsWith('$2a$')) {
         const hashedPassword = await bcrypt.hash(staff.password, 10);
         await Staff.updateOne({ _id: staff._id }, { password: hashedPassword });
-        console.log(`Hashed password for staff: ${staff.name}`);
+
         hashedCount++;
       }
     }
