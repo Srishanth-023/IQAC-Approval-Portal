@@ -1389,13 +1389,13 @@ app.delete("/api/admin/delete-all-requests", requireAdmin, async (req, res) => {
   try {
     const result = await Request.deleteMany({});
     
-    res.json({ 
+    res.status(200).json({ 
       message: "All requests deleted successfully", 
       deletedCount: result.deletedCount 
     });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "Server error" });
+    console.error("Delete all requests error:", e);
+    res.status(500).json({ error: "Server error while deleting requests" });
   }
 });
 

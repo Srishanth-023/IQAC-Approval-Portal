@@ -64,7 +64,9 @@ export default function AdminAllRequests() {
       toast.success(`Successfully deleted ${res.data.deletedCount} requests`);
       loadRequests();
     } catch (err) {
-      toast.error("Failed to delete all requests");
+      console.error("Delete all error:", err);
+      const errorMsg = err.response?.data?.error || err.message || "Failed to delete all requests";
+      toast.error(errorMsg);
     }
   };
 
