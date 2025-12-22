@@ -13,6 +13,8 @@ const bcrypt = require("bcrypt");
 const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const htmlPdf = require("html-pdf-node");
+const { PDFDocument } = require("pdf-lib");
+const axios = require("axios");
 
 dotenv.config();
 
@@ -1027,14 +1029,104 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
       </html>
     `;
 
-    // Generate PDF
+    // Generate approval letter PDF
     const file = { content: htmlContent };
     const options = { 
       format: 'A4',
       margin: { top: '40px', right: '40px', bottom: '40px', left: '40px' }
     };
 
-    const pdfBuffer = await htmlPdf.generatePdf(file, options);
+    const approvalLetterBuffer = await htmlPdf.generatePdf(file, options);
+
+    console.log(`Generated approval letter: ${approvalLetterBuffer.length} bytes`);
+
+    // Merge with original uploaded PDF if it exists
+    let finalPdfBuffer = approvalLetterBuffer;
+    
+    if (doc.reportPath) {
+      try {
+        console.log("\n=== PDF MERGE STARTING ===");
+        console.log("Original report key:", doc.reportPath);
+        console.log("Request ID:", doc._id);
+        console.log("Reference No:", doc.referenceNo);
+        
+        // Get the key - reportPath is already just the key (e.g., "reports/12345_file.pdf")
+        const key = doc.reportPath;
+        
+        // Generate signed URL to download the original PDF
+        const command = new GetObjectCommand({
+          Bucket: process.env.AWS_BUCKET,
+          Key: key,
+        });
+        
+        console.log("Generating S3 signed URL...");
+        const signedUrl = await getSignedUrl(s3, command, { expiresIn: 300 }); // 5 minutes
+        console.log("Signed URL generated successfully");
+        
+        console.log("Downloading original PDF from S3...");
+        
+        // Download the original PDF with better error handling
+        const response = await axios.get(signedUrl, {
+          responseType: 'arraybuffer',
+          maxContentLength: 50 * 1024 * 1024, // 50MB max
+          timeout: 30000 // 30 second timeout
+        });
+        
+        if (!response.data || response.data.byteLength === 0) {
+          throw new Error("Downloaded PDF is empty");
+        }
+        
+        const originalPdfBuffer = Buffer.from(response.data);
+        
+        console.log(`Downloaded original PDF: ${originalPdfBuffer.length} bytes`);
+        
+        // Merge PDFs using pdf-lib
+        console.log("Creating merged PDF document...");
+        const mergedPdf = await PDFDocument.create();
+        
+        // Load and add approval letter PDF pages first
+        console.log("Loading approval letter PDF...");
+        const approvalPdf = await PDFDocument.load(approvalLetterBuffer);
+        console.log(`Approval PDF has ${approvalPdf.getPageCount()} pages`);
+        
+        const approvalPages = await mergedPdf.copyPages(approvalPdf, approvalPdf.getPageIndices());
+        for (const page of approvalPages) {
+          mergedPdf.addPage(page);
+        }
+        console.log(`✓ Added ${approvalPages.length} approval letter pages`);
+        
+        // Load and append original report PDF pages
+        console.log("Loading original report PDF...");
+        const originalPdf = await PDFDocument.load(originalPdfBuffer);
+        console.log(`Original PDF has ${originalPdf.getPageCount()} pages`);
+        
+        const originalPages = await mergedPdf.copyPages(originalPdf, originalPdf.getPageIndices());
+        for (const page of originalPages) {
+          mergedPdf.addPage(page);
+        }
+        console.log(`✓ Added ${originalPages.length} original report pages`);
+        
+        // Save merged PDF
+        console.log("Saving merged PDF...");
+        const mergedPdfBytes = await mergedPdf.save();
+        finalPdfBuffer = Buffer.from(mergedPdfBytes);
+        
+        console.log(`✓ Merged PDF created: ${finalPdfBuffer.length} bytes`);
+        console.log(`Total pages in merged PDF: ${mergedPdf.getPageCount()}`);
+        console.log("=== PDF MERGE SUCCESS ===\n");
+      } catch (mergeError) {
+        console.error("\n=== PDF MERGE ERROR ===");
+        console.error("Error type:", mergeError.name);
+        console.error("Error message:", mergeError.message);
+        console.error("Stack trace:", mergeError.stack);
+        console.error("Falling back to approval letter only");
+        console.error("=== END ERROR ===\n");
+        // If merge fails, just send the approval letter
+        finalPdfBuffer = approvalLetterBuffer;
+      }
+    } else {
+      console.log("⚠ No original report found (reportPath is null/empty) - sending approval letter only");
+    }
 
     // Check if download parameter is present
     const shouldDownload = req.query.download === 'true';
@@ -1050,7 +1142,7 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
       res.setHeader('Content-Disposition', `inline; filename="Approval-Report-${doc.referenceNo || doc._id}.pdf"`);
     }
     
-    res.send(pdfBuffer);
+    res.send(finalPdfBuffer);
 
   } catch (e) {
     console.error(e);
