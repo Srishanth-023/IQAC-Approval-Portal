@@ -1084,18 +1084,7 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
         console.log("Creating merged PDF document...");
         const mergedPdf = await PDFDocument.create();
         
-        // Load and add approval letter PDF pages first
-        console.log("Loading approval letter PDF...");
-        const approvalPdf = await PDFDocument.load(approvalLetterBuffer);
-        console.log(`Approval PDF has ${approvalPdf.getPageCount()} pages`);
-        
-        const approvalPages = await mergedPdf.copyPages(approvalPdf, approvalPdf.getPageIndices());
-        for (const page of approvalPages) {
-          mergedPdf.addPage(page);
-        }
-        console.log(`✓ Added ${approvalPages.length} approval letter pages`);
-        
-        // Load and append original report PDF pages
+        // Load and add original report PDF pages FIRST
         console.log("Loading original report PDF...");
         const originalPdf = await PDFDocument.load(originalPdfBuffer);
         console.log(`Original PDF has ${originalPdf.getPageCount()} pages`);
@@ -1104,7 +1093,18 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
         for (const page of originalPages) {
           mergedPdf.addPage(page);
         }
-        console.log(`✓ Added ${originalPages.length} original report pages`);
+        console.log(`✓ Added ${originalPages.length} original report pages (FIRST)`);
+        
+        // Load and append approval letter PDF pages SECOND
+        console.log("Loading approval letter PDF...");
+        const approvalPdf = await PDFDocument.load(approvalLetterBuffer);
+        console.log(`Approval PDF has ${approvalPdf.getPageCount()} pages`);
+        
+        const approvalPages = await mergedPdf.copyPages(approvalPdf, approvalPdf.getPageIndices());
+        for (const page of approvalPages) {
+          mergedPdf.addPage(page);
+        }
+        console.log(`✓ Added ${approvalPages.length} approval letter pages (SECOND)`);
         
         // Save merged PDF
         console.log("Saving merged PDF...");
