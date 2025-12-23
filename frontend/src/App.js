@@ -15,6 +15,7 @@ const AdminDashboard = lazy(() => import("./components/AdminDashboard"));
 const AddStaff = lazy(() => import("./components/AddStaff"));
 const AddHod = lazy(() => import("./components/AddHod"));
 const AdminAllRequests = lazy(() => import("./components/AdminAllRequests"));
+const RoleRequestHistory = lazy(() => import("./components/RoleRequestHistory"));
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -116,6 +117,25 @@ function App() {
           element={
             <ProtectedRoute role="admin">
               <AdminAllRequests />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/role-request-history"
+          element={
+            <ProtectedRoute role="admin">
+              <RoleRequestHistory />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Role Past/Rejected Requests */}
+        <Route
+          path="/role/:roleKey/history"
+          element={
+            <ProtectedRoute>
+              <RoleRequestHistory />
             </ProtectedRoute>
           }
         />
