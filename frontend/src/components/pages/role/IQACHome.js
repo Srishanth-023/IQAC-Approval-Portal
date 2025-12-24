@@ -344,25 +344,38 @@ function IQACHome() {
                         {/* Reference Number */}
                         <div className="form-group-custom">
                           <label className="form-label-custom" style={{ fontWeight: 600 }}>
-                            Reference Number (8 characters)
+                            Reference Number (8 characters) <span style={{color:'red'}}>*</span>
                           </label>
-                          <input
-                            type="text"
-                            className="form-input-custom"
-                            maxLength="8"
-                            placeholder="Enter 8 character reference"
-                            value={refNumbers[req._id] || ""}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-                              setRefNumbers((prev) => ({
-                                ...prev,
-                                [req._id]: value,
-                              }));
-                              checkRefNumberUniqueness(value, req._id);
-                            }}
-                            style={refWarnings[req._id] ? { borderColor: '#f59e0b' } : {}}
-                          />
-                          {refWarnings[req._id] ? (
+                          {req.overallStatus === 'REAPPROVAL' ? (
+                            <div style={{
+                              background: '#f1f5f9',
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '0.375rem',
+                              padding: '0.5rem 0.75rem',
+                              fontWeight: 600,
+                              color: '#64748b',
+                              marginBottom: '0.25rem'
+                            }}>{refNumbers[req._id] || ''}</div>
+                          ) : (
+                            <input
+                              type="text"
+                              className="form-input-custom"
+                              maxLength="8"
+                              placeholder="Enter 8 character reference"
+                              value={refNumbers[req._id] || ""}
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+                                setRefNumbers((prev) => ({
+                                  ...prev,
+                                  [req._id]: value,
+                                }));
+                                checkRefNumberUniqueness(value, req._id);
+                              }}
+                              style={refWarnings[req._id] ? { borderColor: '#f59e0b' } : {}}
+                              required
+                            />
+                          )}
+                          {refWarnings[req._id] && req.overallStatus !== 'REAPPROVAL' ? (
                             <small style={{ color: '#f59e0b', fontWeight: 600, display: 'block', marginTop: '0.25rem' }}>
                               {refWarnings[req._id]}
                             </small>
@@ -376,7 +389,7 @@ function IQACHome() {
                         {/* Workflow Roles */}
                         <div className="form-group-custom">
                           <label className="form-label-custom" style={{ fontWeight: 600 }}>
-                            Select Workflow Roles
+                            Select Workflow Roles <span style={{color:'red'}}>*</span>
                           </label>
                           <div style={{ 
                             background: '#f8fafc', 
@@ -384,34 +397,40 @@ function IQACHome() {
                             padding: '0.75rem',
                             border: '1px solid #e2e8f0'
                           }}>
-                            {flowOptions.map((r) => (
-                              <label key={r} style={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                gap: '0.5rem',
-                                padding: '0.375rem 0',
-                                cursor: 'pointer',
-                                color: '#475569'
-                              }}>
-                                <input
-                                  type="checkbox"
-                                  checked={(workflows[req._id] || []).includes(r)}
-                                  onChange={() =>
-                                    setWorkflows((prev) => {
-                                      const current = prev[req._id] || [];
-                                      return {
-                                        ...prev,
-                                        [req._id]: current.includes(r)
-                                          ? current.filter((x) => x !== r)
-                                          : [...current, r],
-                                      };
-                                    })
-                                  }
-                                  style={{ width: '16px', height: '16px', accentColor: '#3b82f6' }}
-                                />
-                                <span>{r}</span>
-                              </label>
-                            ))}
+                            {req.overallStatus === 'REAPPROVAL' ? (
+                              <div style={{ color: '#64748b', fontWeight: 600, padding: '0.25rem 0' }}>
+                                {(workflows[req._id] || []).length > 0 ? (workflows[req._id] || []).join(', ') : 'No roles selected'}
+                              </div>
+                            ) : (
+                              flowOptions.map((r) => (
+                                <label key={r} style={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: '0.5rem',
+                                  padding: '0.375rem 0',
+                                  cursor: 'pointer',
+                                  color: '#475569'
+                                }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={(workflows[req._id] || []).includes(r)}
+                                    onChange={() =>
+                                      setWorkflows((prev) => {
+                                        const current = prev[req._id] || [];
+                                        return {
+                                          ...prev,
+                                          [req._id]: current.includes(r)
+                                            ? current.filter((x) => x !== r)
+                                            : [...current, r],
+                                        };
+                                      })
+                                    }
+                                    style={{ width: '16px', height: '16px', accentColor: '#3b82f6' }}
+                                  />
+                                  <span>{r}</span>
+                                </label>
+                              ))
+                            )}
                           </div>
                         </div>
 

@@ -327,6 +327,7 @@ function StaffHome() {
                       value={eventDate}
                       onChange={(e) => setEventDate(e.target.value)}
                       required
+                      min={new Date().toISOString().split('T')[0]}
                     />
                   </div>
 
