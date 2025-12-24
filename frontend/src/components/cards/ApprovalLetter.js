@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { approvalLetterUrl } from "../api";
-import "./Dashboard.css";
-import logo from '../assets/kite-logo.png';
+import { approvalLetterUrl } from "../../api";
+import "../../styles/Dashboard.css";
+import logo from '../../assets/kite-logo.png';
 import { BsArrowLeft, BsFileEarmarkText, BsDownload } from "react-icons/bs";
 
 function ApprovalLetter() {

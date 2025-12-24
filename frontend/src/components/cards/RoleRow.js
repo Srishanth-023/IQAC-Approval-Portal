@@ -1,5 +1,5 @@
 import React from "react";
-import "./Dashboard.css";
+import "../../styles/Dashboard.css";
 
 function RoleRow({ request, onView, onAction }) {
   const getStatusBadge = (status) => {

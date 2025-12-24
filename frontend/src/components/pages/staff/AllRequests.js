@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchAllRequests } from "../api";
-import "./Dashboard.css";
-import logo from '../assets/kite-logo.png';
+import { fetchAllRequests } from "../../../api";
+import "../../../styles/Dashboard.css";
+import logo from '../../../assets/kite-logo.png';
 import { BsClipboardData, BsArrowLeft } from "react-icons/bs";
 
 function AllRequests() {

@@ -4,11 +4,11 @@ import {
   fetchRequestsForRole,
   actOnRequest,
   getFreshReportUrl,
-} from "../api";
+} from "../../../api";
 import { toast } from "react-toastify";
-import useDisableBack from "./useDisableBack";
-import "./Dashboard.css";
-import logo from '../assets/kite-logo.png';
+import { useDisableBack } from "../../hooks";
+import "../../../styles/Dashboard.css";
+import logo from '../../../assets/kite-logo.png';
 import { 
   BsClipboardData, BsFileEarmarkText, BsCheckCircle, BsSearch, 
   BsArrowRepeat, BsExclamationTriangle, BsEye, BsChatLeftText,
@@ -205,6 +205,14 @@ function RoleDashboard() {
                 <div className="dashboard-user-name">Welcome, {user?.name}</div>
                 <div className="dashboard-user-role">{role}</div>
               </div>
+              <button 
+                className="btn-track-header" 
+                onClick={() => navigate("/track-requests")}
+                title="Track Event Requests"
+              >
+                <BsClockHistory style={{ marginRight: '0.5rem' }} />
+                Track Requests
+              </button>
               <button className="btn-logout" onClick={logout}>
                 Logout
               </button>

@@ -1,5 +1,5 @@
 import React from "react";
-import "./Dashboard.css";
+import "../../styles/Dashboard.css";
 
 function RequestDetailModal({ data, onClose }) {
   const {

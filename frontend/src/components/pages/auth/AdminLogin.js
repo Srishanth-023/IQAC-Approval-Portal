@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../api";
+import { loginUser } from "../../../api";
 import { toast } from "react-toastify";
 import "./Login.css";
-import logo from '../assets/kite-logo.png';
-import ipslogo from '../assets/ips.webp';
+import logo from '../../../assets/kite-logo.png';
+import ipslogo from '../../../assets/ips.webp';
 import { BsShieldLock, BsKey, BsArrowLeft } from "react-icons/bs";
 
 export default function AdminLogin() {

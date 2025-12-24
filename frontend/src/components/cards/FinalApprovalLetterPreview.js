@@ -1,6 +1,6 @@
 import React from "react";
-import { approvalLetterUrl } from "../api";
-import "./Dashboard.css";
+import { approvalLetterUrl } from "../../api";
+import "../../styles/Dashboard.css";
 
 function FinalApprovalLetterPreview({ request, onClose }) {
   if (!request) return null;

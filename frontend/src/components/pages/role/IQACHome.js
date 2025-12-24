@@ -5,15 +5,15 @@ import {
   approvalLetterUrl,
   getFreshReportUrl,
   checkReferenceNumber,
-} from "../api";
+} from "../../../api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import useDisableBack from "./useDisableBack";
-import "./Dashboard.css";
-import logo from '../assets/kite-logo.png';
+import { useDisableBack } from "../../hooks";
+import "../../../styles/Dashboard.css";
+import logo from '../../../assets/kite-logo.png';
 import { 
   BsClipboardData, BsFileEarmarkText, BsCheckCircle, BsSearch, 
-  BsArrowRepeat, BsExclamationTriangle 
+  BsArrowRepeat, BsExclamationTriangle, BsClockHistory 
 } from "react-icons/bs";
 
 const flowOptions = ["PRINCIPAL", "DIRECTOR", "AO", "CEO"];
@@ -202,6 +202,14 @@ function IQACHome() {
                 <div className="dashboard-user-name">Welcome, IQAC</div>
                 <div className="dashboard-user-role">Internal Quality Assurance Cell</div>
               </div>
+              <button 
+                className="btn-track-header" 
+                onClick={() => navigate("/track-requests")}
+                title="Track Event Requests"
+              >
+                <BsClockHistory style={{ marginRight: '0.5rem' }} />
+                Track Requests
+              </button>
               <button className="btn-logout" onClick={logout}>
                 Logout
               </button>

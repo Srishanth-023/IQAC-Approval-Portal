@@ -1,21 +1,22 @@
 import React, { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 
-// Eagerly load Login (first page users see)
-import Login from "./components/Login";
-import ProtectedRoute from "./components/ProtectedRoute";
+// Eagerly load Login and ProtectedRoute (first components users interact with)
+import { Login } from "./components/pages/auth";
+import { ProtectedRoute } from "./components/common";
 
 // Lazy load all other components for faster initial load
-const StaffHome = lazy(() => import("./components/StaffHome"));
-const RoleDashboard = lazy(() => import("./components/RoleDashboard"));
-const ApprovalLetter = lazy(() => import("./components/ApprovalLetter"));
-const IQACHome = lazy(() => import("./components/IQACHome"));
-const AdminLogin = lazy(() => import("./components/AdminLogin"));
-const AdminDashboard = lazy(() => import("./components/AdminDashboard"));
-const AddStaff = lazy(() => import("./components/AddStaff"));
-const AddHod = lazy(() => import("./components/AddHod"));
-const AdminAllRequests = lazy(() => import("./components/AdminAllRequests"));
-const RoleRequestHistory = lazy(() => import("./components/RoleRequestHistory"));
+const StaffHome = lazy(() => import("./components/pages/staff/StaffHome"));
+const RoleDashboard = lazy(() => import("./components/pages/role/RoleDashboard"));
+const ApprovalLetter = lazy(() => import("./components/cards/ApprovalLetter"));
+const IQACHome = lazy(() => import("./components/pages/role/IQACHome"));
+const AdminLogin = lazy(() => import("./components/pages/auth/AdminLogin"));
+const AdminDashboard = lazy(() => import("./components/pages/admin/AdminDashboard"));
+const AddStaff = lazy(() => import("./components/pages/admin/AddStaff"));
+const AddHod = lazy(() => import("./components/pages/admin/AddHod"));
+const AdminAllRequests = lazy(() => import("./components/pages/admin/AdminAllRequests"));
+const RoleRequestHistory = lazy(() => import("./components/pages/role/RoleRequestHistory"));
+const TrackEventRequests = lazy(() => import("./components/pages/TrackEventRequests"));
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -136,6 +137,16 @@ function App() {
           element={
             <ProtectedRoute>
               <RoleRequestHistory />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Track Event Requests */}
+        <Route
+          path="/track-requests"
+          element={
+            <ProtectedRoute>
+              <TrackEventRequests />
             </ProtectedRoute>
           }
         />

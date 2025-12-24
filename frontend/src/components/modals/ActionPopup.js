@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./Dashboard.css";
+import "../../styles/Dashboard.css";
 
 const ROLES = ["HOD", "PRINCIPAL", "DIRECTOR", "AO", "CEO"];
 

@@ -735,6 +735,12 @@ app.post("/api/requests/:id/action", async (req, res) => {
 
     // RECREATE logic
     if (action === "recreate") {
+      // Store who recreated this request
+      const lastApprovalIndex = doc.approvals.length - 1;
+      if (lastApprovalIndex >= 0) {
+        doc.approvals[lastApprovalIndex].recreatedBy = role;
+      }
+
       // If HOD recreates, send back to staff
       if (role === "HOD") {
         doc.currentRole = null;
@@ -1435,6 +1441,147 @@ app.post("/api/admin/hash-all-passwords", requireAdmin, async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ===============================
+// TRACKING API ENDPOINTS
+// ===============================
+
+// Get tracking requests for a specific authority role
+app.get("/api/tracking/requests", async (req, res) => {
+  try {
+    const { role, department } = req.query;
+
+    console.log("Tracking request received - Role:", role, "Department:", department);
+
+    if (!role) {
+      return res.status(400).json({ error: "Role is required" });
+    }
+
+    // Get all requests for tracking categories
+    let query = {};
+
+    // For HOD, filter by department
+    if (role === "HOD" && department) {
+      query.department = department;
+    }
+
+    const allRequests = await Request.find(query).sort({ createdAt: -1 });
+    console.log(`Found ${allRequests.length} total requests for query:`, query);
+
+    // Categorize requests
+    const inProgress = [];
+    const accepted = [];
+    const recreatedByOwn = [];
+    const recreatedByOthers = [];
+
+    allRequests.forEach((req) => {
+      // Determine if request has reached this authority
+      let hasReachedAuthority = false;
+
+      if (role === "HOD") {
+        // HOD sees all requests from their department from the start
+        hasReachedAuthority = true;
+      } else if (role === "IQAC") {
+        // IQAC sees requests that are currently with IQAC OR have passed through IQAC
+        hasReachedAuthority = req.currentRole === "IQAC" || 
+                            req.approvals.some(a => a.role === "IQAC") ||
+                            req.workflowRoles;
+      } else {
+        // Other roles (PRINCIPAL, DIRECTOR, AO, CEO) see requests in their workflow
+        hasReachedAuthority = req.workflowRoles && req.workflowRoles.includes(role) &&
+                            (req.currentRole === role || req.approvals.some(a => a.role === role));
+      }
+
+      if (!hasReachedAuthority) {
+        return;
+      }
+
+      // Check if this authority has any approval record
+      // IMPORTANT: Find the LAST (most recent) approval from this authority
+      // because an authority can approve, then recreate, then approve again
+      const allOwnApprovals = req.approvals.filter(a => a.role === role);
+      const ownApproval = allOwnApprovals.length > 0 ? allOwnApprovals[allOwnApprovals.length - 1] : null;
+      
+      // Debug logging for recreated by others
+      if (role === "HOD" && req.approvals.some(a => a.status === "Recreated")) {
+        console.log(`HOD Debug - Request ${req.eventName}:`, {
+          ownApproval: ownApproval,
+          allApprovals: req.approvals.map(a => ({ role: a.role, status: a.status }))
+        });
+      }
+
+      // IN PROGRESS: Request is still in workflow (not completed) AND has reached or passed this authority
+      // This includes:
+      // 1. Requests currently with this authority
+      // 2. Requests this authority has approved (tracking progress through other authorities)
+      // 3. Requests this authority has recreated (tracking if staff resubmitted and where it is now)
+      if (!req.isCompleted && hasReachedAuthority) {
+        // Show if:
+        // 1. Currently with this authority, OR
+        // 2. This authority has already approved it, OR
+        // 3. This authority has recreated it (so they can track its progress after resubmission)
+        if (req.currentRole === role || 
+            (ownApproval && ownApproval.status === "Approved") ||
+            (ownApproval && ownApproval.status === "Recreated")) {
+          inProgress.push(req);
+        }
+      }
+
+      // ACCEPTED: This authority has approved it (regardless of completion status)
+      if (ownApproval && ownApproval.status === "Approved") {
+        accepted.push(req);
+      }
+
+      // RECREATED BY OWN - Show if ANY of this authority's approvals is "Recreated"
+      // (not just the most recent one)
+      if (allOwnApprovals.some(a => a.status === "Recreated")) {
+        // Only add if not already in the list (avoid duplicates)
+        if (!recreatedByOwn.find(r => r._id.toString() === req._id.toString())) {
+          recreatedByOwn.push(req);
+        }
+      }
+
+      // RECREATED BY OTHERS: A higher authority recreated it after this authority approved
+      // OR a lower authority recreated it (for IQAC seeing HOD recreations)
+      if (ownApproval && ownApproval.status === "Approved") {
+        // Find the index of the LAST approval from this authority
+        const ownApprovalIndex = req.approvals.map((a, idx) => a.role === role ? idx : -1)
+          .filter(idx => idx !== -1)
+          .pop(); // Get the last index
+        
+        // Check if any approval after this one has "Recreated" status (higher authority recreated)
+        const recreatedAfterByHigher = req.approvals.slice(ownApprovalIndex + 1).find(a => a.status === "Recreated");
+        
+        // Check if any approval before this one has "Recreated" status (lower authority recreated after this authority approved)
+        // This handles the case where IQAC approved, then HOD recreates on resubmission
+        const recreatedBeforeByLower = req.approvals.slice(0, ownApprovalIndex).find(a => a.status === "Recreated");
+        
+        const recreatedApproval = recreatedAfterByHigher || recreatedBeforeByLower;
+        
+        if (recreatedApproval) {
+          console.log(`Adding to recreatedByOthers for ${role}:`, req.eventName, "recreated by:", recreatedApproval.role);
+          recreatedByOthers.push({
+            ...req.toObject(),
+            recreatedByRole: recreatedApproval.role
+          });
+        }
+      }
+    });
+
+    console.log(`Tracking results - InProgress: ${inProgress.length}, Accepted: ${accepted.length}, RecreatedByOwn: ${recreatedByOwn.length}, RecreatedByOthers: ${recreatedByOthers.length}`);
+
+    res.json({
+      inProgress,
+      accepted,
+      recreatedByOwn,
+      recreatedByOthers
+    });
+
+  } catch (error) {
+    console.error("Tracking error:", error);
+    res.status(500).json({ error: "Failed to fetch tracking data" });
   }
 });
 

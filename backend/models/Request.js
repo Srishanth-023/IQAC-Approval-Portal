@@ -6,6 +6,7 @@ const approvalSchema = new mongoose.Schema(
     status: { type: String, enum: ["Approved", "Recreated"], required: true },
     comments: { type: String, default: "" },
     decidedAt: { type: Date, default: Date.now },
+    recreatedBy: { type: String, default: null }, // Track who recreated the request
   },
   { _id: false }
 );

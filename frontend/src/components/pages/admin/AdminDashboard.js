@@ -8,10 +8,10 @@ import {
   adminDeleteHod,
   adminResetStaffPassword,
   adminResetHodPassword
-} from "../api";
+} from "../../../api";
 import { toast } from "react-toastify";
-import "./Dashboard.css";
-import logo from '../assets/kite-logo.png';
+import "../../../styles/Dashboard.css";
+import logo from '../../../assets/kite-logo.png';
 import { BsPersonPlus, BsPersonBadge, BsClipboardData, BsPeople } from "react-icons/bs";
 
 export default function AdminDashboard() {

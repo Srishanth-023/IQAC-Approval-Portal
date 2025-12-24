@@ -178,4 +178,12 @@ export const adminHashAllPasswords = (role) =>
     headers: { "x-user-role": role },
   });
 
+// =============================================
+// TRACKING REQUESTS
+// =============================================
+export const fetchTrackingRequests = (role, department = null) =>
+  API.get("/tracking/requests", {
+    params: { role, department },
+  });
+
 export default API;

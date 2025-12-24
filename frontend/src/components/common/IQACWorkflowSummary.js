@@ -1,5 +1,5 @@
 import React from "react";
-import "./Dashboard.css";
+import "../../styles/Dashboard.css";
 import { BsClipboardData, BsExclamationTriangle, BsLightbulb } from "react-icons/bs";
 
 function IQACWorkflowSummary({ referenceNo, selectedRoles }) {

@@ -5,11 +5,11 @@ import {
   adminUpdateStaff,
   adminDeleteStaff,
   adminGetDepartments,
-} from "../api";
+} from "../../../api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import "./Dashboard.css";
-import logo from '../assets/kite-logo.png';
+import "../../../styles/Dashboard.css";
+import logo from '../../../assets/kite-logo.png';
 import { BsPencilSquare, BsPlusCircle, BsLightbulb, BsPeople, BsArrowLeft, BsTrash } from "react-icons/bs";
 
 export default function StaffManagement() {

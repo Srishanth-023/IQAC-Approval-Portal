@@ -5,11 +5,11 @@ import {
   adminCreateHod,
   adminUpdateHod,
   adminResetHodPassword,
-} from "../api";
+} from "../../../api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import "./Dashboard.css";
-import logo from '../assets/kite-logo.png';
+import "../../../styles/Dashboard.css";
+import logo from '../../../assets/kite-logo.png';
 import { BsBuilding, BsLightbulb, BsPencilSquare, BsPlusCircle, BsShieldLock, BsArrowLeft } from "react-icons/bs";
 
 export default function AddHod() {

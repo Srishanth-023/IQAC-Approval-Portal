@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { adminFetchAllRequests, adminDeleteRequest, adminDeleteAllRequests, approvalLetterUrl } from "../api";
+import { adminFetchAllRequests, adminDeleteRequest, adminDeleteAllRequests, approvalLetterUrl } from "../../../api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import "./Dashboard.css";
-import logo from '../assets/kite-logo.png';
+import "../../../styles/Dashboard.css";
+import logo from '../../../assets/kite-logo.png';
 import { BsSearch, BsClipboardData, BsTrash, BsFileEarmarkText, BsArrowLeft } from "react-icons/bs";
 
 export default function AdminAllRequests() {

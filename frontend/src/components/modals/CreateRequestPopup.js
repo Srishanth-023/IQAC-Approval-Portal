@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
-import "./Dashboard.css";
+import "../../styles/Dashboard.css";
 
 const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
   const [formValues, setFormValues] = useState({

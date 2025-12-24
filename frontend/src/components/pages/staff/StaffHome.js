@@ -5,12 +5,12 @@ import {
   resubmitRequest,
   approvalLetterDownloadUrl,
   getFreshReportUrl,
-} from "../api";
+} from "../../../api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import useDisableBack from "./useDisableBack";
-import "./Dashboard.css";
-import logo from '../assets/kite-logo.png';
+import { useDisableBack } from "../../hooks";
+import "../../../styles/Dashboard.css";
+import logo from '../../../assets/kite-logo.png';
 import { 
   BsFileEarmarkText, BsPencilSquare, BsClipboardData, BsExclamationTriangle, 
   BsCheckCircle, BsInbox, BsLightbulb, BsBan, BsJournalText 
