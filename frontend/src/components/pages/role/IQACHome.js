@@ -346,16 +346,22 @@ function IQACHome() {
                           <label className="form-label-custom" style={{ fontWeight: 600 }}>
                             Reference Number (8 characters) <span style={{color:'red'}}>*</span>
                           </label>
-                          {req.overallStatus === 'REAPPROVAL' ? (
+                          {req.referenceNo ? (
                             <div style={{
                               background: '#f1f5f9',
-                              border: '1px solid #e2e8f0',
+                              border: '2px solid #94a3b8',
                               borderRadius: '0.375rem',
-                              padding: '0.5rem 0.75rem',
+                              padding: '0.625rem 0.75rem',
                               fontWeight: 600,
-                              color: '#64748b',
-                              marginBottom: '0.25rem'
-                            }}>{refNumbers[req._id] || ''}</div>
+                              color: '#475569',
+                              marginBottom: '0.25rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem'
+                            }}>
+                              <span style={{ color: '#64748b', fontSize: '0.875rem' }}></span>
+                              {refNumbers[req._id] || req.referenceNo}
+                            </div>
                           ) : (
                             <input
                               type="text"
@@ -375,9 +381,13 @@ function IQACHome() {
                               required
                             />
                           )}
-                          {refWarnings[req._id] && req.overallStatus !== 'REAPPROVAL' ? (
+                          {refWarnings[req._id] && !req.referenceNo ? (
                             <small style={{ color: '#f59e0b', fontWeight: 600, display: 'block', marginTop: '0.25rem' }}>
                               {refWarnings[req._id]}
+                            </small>
+                          ) : req.referenceNo ? (
+                            <small style={{ color: '#64748b', display: 'block', marginTop: '0.25rem', fontStyle: 'italic' }}>
+                               Reference number is locked for resubmitted requests
                             </small>
                           ) : (
                             <small style={{ color: '#64748b', display: 'block', marginTop: '0.25rem' }}>
@@ -397,9 +407,25 @@ function IQACHome() {
                             padding: '0.75rem',
                             border: '1px solid #e2e8f0'
                           }}>
-                            {req.overallStatus === 'REAPPROVAL' ? (
-                              <div style={{ color: '#64748b', fontWeight: 600, padding: '0.25rem 0' }}>
-                                {(workflows[req._id] || []).length > 0 ? (workflows[req._id] || []).join(', ') : 'No roles selected'}
+                            {req.workflowRoles && req.workflowRoles.length > 0 ? (
+                              <div>
+                                <div style={{ 
+                                  color: '#475569', 
+                                  fontWeight: 600, 
+                                  padding: '0.5rem',
+                                  background: '#f1f5f9',
+                                  borderRadius: '0.375rem',
+                                  border: '2px solid #94a3b8',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.5rem'
+                                }}>
+                                  <span style={{ color: '#64748b', fontSize: '0.875rem' }}></span>
+                                  {(workflows[req._id] || req.workflowRoles || []).join(' → ')}
+                                </div>
+                                <small style={{ color: '#64748b', display: 'block', marginTop: '0.5rem', fontStyle: 'italic' }}>
+                                   Workflow is locked for resubmitted requests
+                                </small>
                               </div>
                             ) : (
                               flowOptions.map((r) => (

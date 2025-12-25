@@ -40,14 +40,15 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
     const newErrors = {};
     const today = new Date().toISOString().split("T")[0];
 
-    if (!formValues.event_name) newErrors.event_name = "Event name is required.";
+    if (!formValues.event_name?.trim()) newErrors.event_name = "Event name is required.";
     if (!formValues.event_date) newErrors.event_date = "Event date is required.";
     else if (formValues.event_date < today)
       newErrors.event_date = "Event date cannot be in the past.";
 
     if (!formValues.time_in) newErrors.time_in = "Time in is required.";
     if (!formValues.time_out) newErrors.time_out = "Time out is required.";
-    if (!formValues.purpose) newErrors.purpose = "Purpose is required.";
+    if (!formValues.purpose?.trim()) newErrors.purpose = "Purpose is required.";
+    if (!formValues.event_report) newErrors.event_report = "Event report PDF is required.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -71,14 +72,14 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
     <div className="modal-overlay">
       <div className="modal-container" style={{ maxWidth: "500px" }}>
         <div className="modal-header-custom">
-          <h3>📝 Create Event Request</h3>
+          <h3> Create Event Request</h3>
           <button className="modal-close-btn" onClick={onClose}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body-custom">
             <div className="form-group-custom">
-              <label className="form-label-custom">Event Name</label>
+              <label className="form-label-custom">Event Name <span style={{ color: '#ef4444' }}>*</span></label>
               <input
                 type="text"
                 className="form-input-custom"
@@ -86,6 +87,7 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
                 value={formValues.event_name}
                 onChange={handleChange}
                 placeholder="Enter event name"
+                required
               />
               {errors.event_name && (
                 <small style={{ color: "#ef4444", fontSize: "0.8rem" }}>{errors.event_name}</small>
@@ -93,7 +95,7 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             <div className="form-group-custom">
-              <label className="form-label-custom">Event Date</label>
+              <label className="form-label-custom">Event Date <span style={{ color: '#ef4444' }}>*</span></label>
               <input
                 type="date"
                 className="form-input-custom"
@@ -101,6 +103,7 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
                 value={formValues.event_date}
                 onChange={handleChange}
                 min={new Date().toISOString().split("T")[0]}
+                required
               />
               {errors.event_date && (
                 <small style={{ color: "#ef4444", fontSize: "0.8rem" }}>{errors.event_date}</small>
@@ -109,13 +112,14 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
               <div className="form-group-custom">
-                <label className="form-label-custom">Time In</label>
+                <label className="form-label-custom">Time In <span style={{ color: '#ef4444' }}>*</span></label>
                 <input
                   type="time"
                   className="form-input-custom"
                   name="time_in"
                   value={formValues.time_in}
                   onChange={handleChange}
+                  required
                 />
                 {errors.time_in && (
                   <small style={{ color: "#ef4444", fontSize: "0.8rem" }}>{errors.time_in}</small>
@@ -123,13 +127,14 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
               </div>
 
               <div className="form-group-custom">
-                <label className="form-label-custom">Time Out</label>
+                <label className="form-label-custom">Time Out <span style={{ color: '#ef4444' }}>*</span></label>
                 <input
                   type="time"
                   className="form-input-custom"
                   name="time_out"
                   value={formValues.time_out}
                   onChange={handleChange}
+                  required
                 />
                 {errors.time_out && (
                   <small style={{ color: "#ef4444", fontSize: "0.8rem" }}>{errors.time_out}</small>
@@ -138,7 +143,7 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             <div className="form-group-custom">
-              <label className="form-label-custom">Purpose</label>
+              <label className="form-label-custom">Purpose <span style={{ color: '#ef4444' }}>*</span></label>
               <textarea
                 className="form-input-custom"
                 name="purpose"
@@ -147,6 +152,7 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
                 onChange={handleChange}
                 placeholder="Enter the purpose of the event"
                 style={{ resize: "vertical" }}
+                required
               />
               {errors.purpose && (
                 <small style={{ color: "#ef4444", fontSize: "0.8rem" }}>{errors.purpose}</small>
@@ -154,7 +160,7 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             <div className="form-group-custom">
-              <label className="form-label-custom">Event Report (optional, PDF only)</label>
+              <label className="form-label-custom">Event Report (PDF only) <span style={{ color: '#ef4444' }}>*</span></label>
               <input
                 type="file"
                 className="form-input-custom"
@@ -162,8 +168,12 @@ const CreateRequestPopup = ({ isOpen, onClose, onSubmit }) => {
                 accept=".pdf,application/pdf"
                 onChange={handleChange}
                 style={{ padding: "0.6rem" }}
+                required
               />
               <small style={{ color: "#64748b", fontSize: "0.8rem" }}>Only PDF files are accepted</small>
+              {errors.event_report && (
+                <small style={{ color: "#ef4444", fontSize: "0.8rem", display: "block", marginTop: "0.25rem" }}>{errors.event_report}</small>
+              )}
             </div>
           </div>
 
