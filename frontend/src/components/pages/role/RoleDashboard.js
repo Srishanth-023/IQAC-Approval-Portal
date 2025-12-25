@@ -410,7 +410,15 @@ function RoleDashboard() {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {selectedRequestRemarks.approvals.map((approval, idx) => (
+                  {selectedRequestRemarks.approvals
+                    .filter(approval => {
+                      // Hide recreation history for AO and CEO
+                      if ((role === 'AO' || role === 'CEO') && approval.status === 'Recreated') {
+                        return false;
+                      }
+                      return true;
+                    })
+                    .map((approval, idx) => (
                     <div key={idx} style={{ 
                       background: 'white', 
                       borderRadius: '0.75rem', 
@@ -430,7 +438,6 @@ function RoleDashboard() {
                           {new Date(approval.decidedAt).toLocaleString()}
                         </small>
                       </div>
-                      
                       <div style={{ marginBottom: '0.5rem' }}>
                         <strong>Status:</strong> 
                         <span className={`badge-custom ${
@@ -441,7 +448,6 @@ function RoleDashboard() {
                           {approval.status}
                         </span>
                       </div>
-                      
                       <div>
                         <strong>Comments:</strong>
                         <p style={{ 
