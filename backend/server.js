@@ -792,12 +792,8 @@ app.post("/api/requests/:id/action", async (req, res) => {
 // ===============================
 app.get("/api/requests/:id/approval-letter", async (req, res) => {
   try {
-    console.log(`📄 Approval letter requested for ID: ${req.params.id}`);
-    
     const doc = await Request.findById(req.params.id);
     if (!doc) return res.status(404).send("Not found");
-
-    console.log(`📋 Request found: ${doc.eventName}, reportPath: ${doc.reportPath || 'NONE'}`);
 
     // Read and convert logo to base64
     const path = require("path");
@@ -998,13 +994,10 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
 
     const approvalLetterBuffer = await htmlPdf.generatePdf(file, options);
 
-    console.log(`✅ Approval letter PDF generated (${approvalLetterBuffer.length} bytes)`);
-
     // Merge with original uploaded PDF if it exists
     let finalPdfBuffer = approvalLetterBuffer;
     
     if (doc.reportPath) {
-      console.log(`🔄 Attempting to merge with uploaded report at: ${doc.reportPath}`);
       try {
         // Get the key - reportPath is already just the key (e.g., "reports/12345_file.pdf")
         const key = doc.reportPath;
@@ -1015,8 +1008,6 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
           Key: key,
         });
         
-        console.log(`📥 Downloading from S3: ${process.env.AWS_BUCKET}/${key}`);
-        
         const s3Response = await s3.send(command);
         
         // Convert stream to buffer
@@ -1025,8 +1016,6 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
           chunks.push(chunk);
         }
         const originalPdfBuffer = Buffer.concat(chunks);
-        
-        console.log(`✅ Downloaded PDF from S3 (${originalPdfBuffer.length} bytes)`);
         
         if (!originalPdfBuffer || originalPdfBuffer.length === 0) {
           throw new Error("Downloaded PDF is empty");
@@ -1054,16 +1043,11 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
         // Save merged PDF
         const mergedPdfBytes = await mergedPdf.save();
         finalPdfBuffer = Buffer.from(mergedPdfBytes);
-        
-        console.log(`✅ Successfully merged PDFs for request ${doc._id}. Total pages: ${mergedPdf.getPageCount()}`);
       } catch (mergeError) {
-        console.error("❌ PDF merge failed:", mergeError.message);
-        console.error("Full error:", mergeError);
+        console.error("PDF merge error:", mergeError.message);
         // If merge fails, just send the approval letter
         finalPdfBuffer = approvalLetterBuffer;
       }
-    } else {
-      console.log(`ℹ️ No report uploaded for request ${doc._id}, sending approval letter only`);
     }
 
     // Check if download parameter is present
