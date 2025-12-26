@@ -17,6 +17,7 @@ const AddHod = lazy(() => import("./components/pages/admin/AddHod"));
 const AdminAllRequests = lazy(() => import("./components/pages/admin/AdminAllRequests"));
 const RoleRequestHistory = lazy(() => import("./components/pages/role/RoleRequestHistory"));
 const TrackEventRequests = lazy(() => import("./components/pages/TrackEventRequests"));
+const RequestDetail = lazy(() => import("./components/pages/RequestDetail"));
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -147,6 +148,16 @@ function App() {
           element={
             <ProtectedRoute>
               <TrackEventRequests />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Request Detail */}
+        <Route
+          path="/request-detail/:id"
+          element={
+            <ProtectedRoute>
+              <RequestDetail />
             </ProtectedRoute>
           }
         />
