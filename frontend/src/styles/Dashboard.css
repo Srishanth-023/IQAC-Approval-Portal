@@ -1250,6 +1250,16 @@
   animation: glow 2s ease-in-out infinite;
 }
 
+/* Status badge for completed requests */
+.status-badge.status-completed {
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  color: white;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+}
+
 @keyframes glow {
   0%, 100% {
     box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);

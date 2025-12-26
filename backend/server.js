@@ -1476,6 +1476,7 @@ app.get("/api/tracking/requests", async (req, res) => {
     const accepted = [];
     const recreatedByOwn = [];
     const recreatedByOthers = [];
+    const completed = [];
 
     allRequests.forEach((req) => {
       // Determine if request has reached this authority
@@ -1535,6 +1536,14 @@ app.get("/api/tracking/requests", async (req, res) => {
         accepted.push(req);
       }
 
+      // COMPLETED: Request is fully approved by all authorities AND this authority has approved it
+      if (req.isCompleted && ownApproval && ownApproval.status === "Approved") {
+        console.log(`Adding to completed: ${req.eventName} (isCompleted: ${req.isCompleted}, ownApproval: ${ownApproval?.status})`);
+        completed.push(req);
+      } else if (req.isCompleted) {
+        console.log(`Not adding ${req.eventName} to completed - ownApproval: ${ownApproval?.status || 'none'}`);
+      }
+
       // RECREATED BY OWN - Show if ANY of this authority's approvals is "Recreated"
       // (not just the most recent one)
       if (allOwnApprovals.some(a => a.status === "Recreated")) {
@@ -1571,13 +1580,14 @@ app.get("/api/tracking/requests", async (req, res) => {
       }
     });
 
-    console.log(`Tracking results - InProgress: ${inProgress.length}, Accepted: ${accepted.length}, RecreatedByOwn: ${recreatedByOwn.length}, RecreatedByOthers: ${recreatedByOthers.length}`);
+    console.log(`Tracking results - InProgress: ${inProgress.length}, Accepted: ${accepted.length}, RecreatedByOwn: ${recreatedByOwn.length}, RecreatedByOthers: ${recreatedByOthers.length}, Completed: ${completed.length}`);
 
     res.json({
       inProgress,
       accepted,
       recreatedByOwn,
-      recreatedByOthers
+      recreatedByOthers,
+      completed
     });
 
   } catch (error) {

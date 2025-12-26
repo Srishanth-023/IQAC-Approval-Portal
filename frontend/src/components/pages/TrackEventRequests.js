@@ -21,7 +21,8 @@ export default function TrackEventRequests() {
     inProgress: [],
     accepted: [],
     recreatedByOwn: [],
-    recreatedByOthers: []
+    recreatedByOthers: [],
+    completed: []
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -93,10 +94,11 @@ export default function TrackEventRequests() {
   // Get unique departments for filter
   const getAllDepartments = () => {
     const allRequests = [
-      ...trackingData.inProgress,
-      ...trackingData.accepted,
-      ...trackingData.recreatedByOwn,
-      ...trackingData.recreatedByOthers
+      ...(trackingData.inProgress || []),
+      ...(trackingData.accepted || []),
+      ...(trackingData.recreatedByOwn || []),
+      ...(trackingData.recreatedByOthers || []),
+      ...(trackingData.completed || [])
     ];
     return [...new Set(allRequests.map(req => req.department))].sort();
   };
@@ -107,7 +109,7 @@ export default function TrackEventRequests() {
         key: "inProgress",
         label: "In Progress",
         icon: <BsClockHistory />,
-        count: trackingData.inProgress.length,
+        count: trackingData.inProgress?.length || 0,
         color: "#3498db",
         description: "Track ongoing requests (pending or approved by you)"
       },
@@ -115,7 +117,7 @@ export default function TrackEventRequests() {
         key: "accepted",
         label: "Approved",
         icon: <BsCheckCircle />,
-        count: trackingData.accepted.length,
+        count: trackingData.accepted?.length || 0,
         color: "#2ecc71",
         description: "Requests you have approved"
       },
@@ -123,7 +125,7 @@ export default function TrackEventRequests() {
         key: "recreatedByOwn",
         label: "Recreated by Own",
         icon: <BsArrowRepeat />,
-        count: trackingData.recreatedByOwn.length,
+        count: trackingData.recreatedByOwn?.length || 0,
         color: "#f39c12",
         description: "Requests you sent back for recreation"
       },
@@ -131,9 +133,17 @@ export default function TrackEventRequests() {
         key: "recreatedByOthers",
         label: "Recreated by Others",
         icon: <BsExclamationCircle />,
-        count: trackingData.recreatedByOthers.length,
+        count: trackingData.recreatedByOthers?.length || 0,
         color: "#e74c3c",
         description: "Requests you approved but higher authorities sent back for changes"
+      },
+      {
+        key: "completed",
+        label: "Fully Completed",
+        icon: <BsCheckCircle />,
+        count: trackingData.completed?.length || 0,
+        color: "#27ae60",
+        description: "Requests approved by all authorities"
       }
     ];
 
@@ -211,6 +221,8 @@ export default function TrackEventRequests() {
             Recreated by {req.recreatedByRole || "Higher Authority"}
           </span>
         );
+      } else if (sectionType === "completed") {
+        return <span className="status-badge status-completed">Fully Approved</span>;
       }
     };
 
@@ -440,14 +452,16 @@ export default function TrackEventRequests() {
       inProgress: "In Progress",
       accepted: "Approved",
       recreatedByOwn: "Recreated by Own",
-      recreatedByOthers: "Recreated by Others"
+      recreatedByOthers: "Recreated by Others",
+      completed: "Fully Completed"
     };
 
     const sectionColors = {
       inProgress: "#3498db",
       accepted: "#2ecc71",
       recreatedByOwn: "#f39c12",
-      recreatedByOthers: "#e74c3c"
+      recreatedByOthers: "#e74c3c",
+      completed: "#27ae60"
     };
 
     const currentRequests = filterRequests(trackingData[activeSection] || []);
