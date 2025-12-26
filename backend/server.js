@@ -792,8 +792,12 @@ app.post("/api/requests/:id/action", async (req, res) => {
 // ===============================
 app.get("/api/requests/:id/approval-letter", async (req, res) => {
   try {
+    console.log(`📄 Approval letter requested for ID: ${req.params.id}`);
+    
     const doc = await Request.findById(req.params.id);
     if (!doc) return res.status(404).send("Not found");
+
+    console.log(`📋 Request found: ${doc.eventName}, reportPath: ${doc.reportPath || 'NONE'}`);
 
     // Read and convert logo to base64
     const path = require("path");
@@ -994,39 +998,44 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
 
     const approvalLetterBuffer = await htmlPdf.generatePdf(file, options);
 
+    console.log(`✅ Approval letter PDF generated (${approvalLetterBuffer.length} bytes)`);
+
     // Merge with original uploaded PDF if it exists
     let finalPdfBuffer = approvalLetterBuffer;
     
     if (doc.reportPath) {
+      console.log(`🔄 Attempting to merge with uploaded report at: ${doc.reportPath}`);
       try {
         // Get the key - reportPath is already just the key (e.g., "reports/12345_file.pdf")
         const key = doc.reportPath;
         
-        // Generate signed URL to download the original PDF
+        // Get object directly from S3 instead of using presigned URL
         const command = new GetObjectCommand({
           Bucket: process.env.AWS_BUCKET,
           Key: key,
         });
         
-        const signedUrl = await getSignedUrl(s3, command, { expiresIn: 300 }); // 5 minutes
+        console.log(`📥 Downloading from S3: ${process.env.AWS_BUCKET}/${key}`);
         
-        // Download the original PDF with better error handling
-        const response = await axios.get(signedUrl, {
-          responseType: 'arraybuffer',
-          maxContentLength: 50 * 1024 * 1024, // 50MB max
-          timeout: 30000 // 30 second timeout
-        });
+        const s3Response = await s3.send(command);
         
-        if (!response.data || response.data.byteLength === 0) {
+        // Convert stream to buffer
+        const chunks = [];
+        for await (const chunk of s3Response.Body) {
+          chunks.push(chunk);
+        }
+        const originalPdfBuffer = Buffer.concat(chunks);
+        
+        console.log(`✅ Downloaded PDF from S3 (${originalPdfBuffer.length} bytes)`);
+        
+        if (!originalPdfBuffer || originalPdfBuffer.length === 0) {
           throw new Error("Downloaded PDF is empty");
         }
-        
-        const originalPdfBuffer = Buffer.from(response.data);
         
         // Merge PDFs using pdf-lib
         const mergedPdf = await PDFDocument.create();
         
-        // Load and add original report PDF pages FIRST
+        // Load and add original report PDF pages FIRST (staff's uploaded document)
         const originalPdf = await PDFDocument.load(originalPdfBuffer);
         
         const originalPages = await mergedPdf.copyPages(originalPdf, originalPdf.getPageIndices());
@@ -1045,10 +1054,16 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
         // Save merged PDF
         const mergedPdfBytes = await mergedPdf.save();
         finalPdfBuffer = Buffer.from(mergedPdfBytes);
+        
+        console.log(`✅ Successfully merged PDFs for request ${doc._id}. Total pages: ${mergedPdf.getPageCount()}`);
       } catch (mergeError) {
+        console.error("❌ PDF merge failed:", mergeError.message);
+        console.error("Full error:", mergeError);
         // If merge fails, just send the approval letter
         finalPdfBuffer = approvalLetterBuffer;
       }
+    } else {
+      console.log(`ℹ️ No report uploaded for request ${doc._id}, sending approval letter only`);
     }
 
     // Check if download parameter is present
