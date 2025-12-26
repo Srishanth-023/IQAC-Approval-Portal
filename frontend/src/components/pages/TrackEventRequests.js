@@ -142,7 +142,7 @@ export default function TrackEventRequests() {
         label: "Fully Completed",
         icon: <BsCheckCircle />,
         count: trackingData.completed?.length || 0,
-        color: "#27ae60",
+        color: "#8b5cf6",
         description: "Requests approved by all authorities"
       }
     ];
@@ -461,7 +461,7 @@ export default function TrackEventRequests() {
       accepted: "#2ecc71",
       recreatedByOwn: "#f39c12",
       recreatedByOthers: "#e74c3c",
-      completed: "#27ae60"
+      completed: "#8b5cf6"
     };
 
     const currentRequests = filterRequests(trackingData[activeSection] || []);

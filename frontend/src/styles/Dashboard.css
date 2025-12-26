@@ -1252,12 +1252,12 @@
 
 /* Status badge for completed requests */
 .status-badge.status-completed {
-  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
   color: white;
   font-weight: 700;
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
-  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
 }
 
 @keyframes glow {
