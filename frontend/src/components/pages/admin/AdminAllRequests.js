@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import "../../../styles/Dashboard.css";
 import logo from '../../../assets/kite-logo.png';
-import { BsSearch, BsClipboardData, BsTrash, BsFileEarmarkText, BsArrowLeft } from "react-icons/bs";
+import { BsSearch, BsClipboardData, BsTrash, BsFileEarmarkText, BsArrowLeft, BsArrowRepeat } from "react-icons/bs";
 
 export default function AdminAllRequests() {
   const navigate = useNavigate();
@@ -201,12 +201,21 @@ export default function AdminAllRequests() {
                     </tr>
                   ) : (
                     filteredRequests.map((req, index) => (
-                      <tr key={req._id}>
+                      <tr key={req._id} className={req.isResubmitted ? 'resubmitted-row' : ''}>
                         <td><strong>{index + 1}</strong></td>
                         <td>{req.referenceNo || "-"}</td>
                         <td>{req.staffName}</td>
                         <td>{req.department}</td>
-                        <td>{req.eventName}</td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            {req.eventName}
+                            {req.isResubmitted && (
+                              <span className="resubmitted-tag" title="This request has been recreated and resubmitted">
+                                <BsArrowRepeat /> Resubmitted
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td>{req.eventDate}</td>
                         <td>
                           <span className={req.isCompleted ? "badge-custom badge-approved" : "badge-custom badge-pending"}>

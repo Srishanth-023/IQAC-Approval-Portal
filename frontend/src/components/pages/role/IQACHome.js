@@ -292,9 +292,18 @@ function IQACHome() {
               const matchesDepartment = filterDepartment === "" || req.department === filterDepartment;
               const matchesEventName = filterEventName === "" || req.eventName.toLowerCase().includes(filterEventName.toLowerCase());
               return matchesDepartment && matchesEventName;
-            }).map((req) => (
+            }).map((req) => {
+              // Only show resubmitted flag if IQAC has already reviewed this request
+              const hasReviewedBefore = req.isResubmitted && req.approvals && req.approvals.some(a => a.role === 'IQAC');
+              
+              return (
               <div className="col-md-6 col-lg-4" key={req._id}>
-                <div className="dashboard-card fade-in h-100">
+                <div className="dashboard-card fade-in h-100" style={{ position: 'relative' }}>
+                  {hasReviewedBefore && (
+                    <div className="resubmitted-badge">
+                      <span>✓ Resubmitted</span>
+                    </div>
+                  )}
                   <div className="dashboard-card-body">
                     {/* Basic Details */}
                     <h5 style={{ fontWeight: 700, color: '#1e3a8a', marginBottom: '1rem' }}>
@@ -497,7 +506,8 @@ function IQACHome() {
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

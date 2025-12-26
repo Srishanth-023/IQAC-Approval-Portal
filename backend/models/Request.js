@@ -33,6 +33,7 @@ const requestSchema = new mongoose.Schema(
     approvals: [approvalSchema],
 
     isCompleted: { type: Boolean, default: false },
+    isResubmitted: { type: Boolean, default: false }, // Flag for recreated events that have been resubmitted
   },
   { timestamps: true }
 );

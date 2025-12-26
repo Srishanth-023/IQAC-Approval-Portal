@@ -299,9 +299,22 @@ function RoleDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredRequests.map((r) => (
-                      <tr key={r._id}>
-                        <td><strong>{r.eventName}</strong></td>
+                    {filteredRequests.map((r) => {
+                      // Only show resubmitted flag if current role has already reviewed this request
+                      const hasReviewedBefore = r.isResubmitted && r.approvals && r.approvals.some(a => a.role === role);
+                      
+                      return (
+                      <tr key={r._id} className={hasReviewedBefore ? 'resubmitted-row' : ''}>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <strong>{r.eventName}</strong>
+                            {hasReviewedBefore && (
+                              <span className="resubmitted-tag" title="This request has been recreated and resubmitted">
+                                <BsArrowRepeat /> Resubmitted
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td>{r.staffName}</td>
                         <td><span className="badge-custom badge-processing">{r.department}</span></td>
                         <td>{r.eventDate}</td>
@@ -350,7 +363,8 @@ function RoleDashboard() {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -410,15 +424,7 @@ function RoleDashboard() {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {selectedRequestRemarks.approvals
-                    .filter(approval => {
-                      // Hide recreation history for AO and CEO
-                      if ((role === 'AO' || role === 'CEO') && approval.status === 'Recreated') {
-                        return false;
-                      }
-                      return true;
-                    })
-                    .map((approval, idx) => (
+                  {selectedRequestRemarks.approvals.map((approval, idx) => (
                     <div key={idx} style={{ 
                       background: 'white', 
                       borderRadius: '0.75rem', 
@@ -453,12 +459,13 @@ function RoleDashboard() {
                         <p style={{ 
                           margin: '0.5rem 0 0 0', 
                           padding: '0.75rem', 
-                          background: '#f8fafc', 
+                          background: approval.status === 'Recreated' ? '#fef3c7' : '#f8fafc', 
                           borderRadius: '0.5rem',
                           color: approval.comments ? '#334155' : '#94a3b8',
-                          fontStyle: approval.comments ? 'normal' : 'italic'
+                          fontStyle: approval.comments ? 'normal' : 'italic',
+                          borderLeft: approval.status === 'Recreated' ? '3px solid #f59e0b' : 'none'
                         }}>
-                          {approval.comments || 'No comments provided'}
+                          {approval.comments || (approval.status === 'Recreated' ? 'Recreation requested - No specific comments provided' : 'No comments provided')}
                         </p>
                       </div>
                     </div>

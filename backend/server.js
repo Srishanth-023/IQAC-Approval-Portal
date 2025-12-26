@@ -497,6 +497,7 @@ app.put("/api/requests/:id/resubmit", upload.single("event_report"), async (req,
     doc.currentRole = "HOD";
     doc.overallStatus = "Waiting approval for HOD (Resubmitted)";
     doc.isCompleted = false;
+    doc.isResubmitted = true; // Flag as resubmitted
     
     await doc.save();
     
@@ -644,6 +645,7 @@ app.post("/api/requests/:id/edit", upload.single("event_report"), async (req, re
     doc.currentRole = "HOD";
     doc.overallStatus = "Waiting approval for HOD (Resubmitted after recreation)";
     doc.isCompleted = false;
+    doc.isResubmitted = true; // Flag as resubmitted
     // IMPORTANT: Keep workflowRoles and referenceNo from original IQAC approval
     // Do NOT reset them - HOD needs these to route correctly
     

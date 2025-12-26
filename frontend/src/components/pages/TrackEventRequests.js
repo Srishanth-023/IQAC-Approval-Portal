@@ -221,8 +221,16 @@ export default function TrackEventRequests() {
       return req.overallStatus || "Processing";
     };
 
+    // Only show resubmitted flag if current role has already reviewed this request
+    const hasReviewedBefore = req.isResubmitted && req.approvals && req.approvals.some(a => a.role === userRole);
+
     return (
       <div key={req._id} className={`request-tracking-card fade-in ${sectionType === 'recreatedByOthers' ? 'recreated-others-card' : ''}`}>
+        {hasReviewedBefore && (
+          <div className="resubmitted-badge-track">
+            <BsCheckCircle /> Resubmitted
+          </div>
+        )}
         {sectionType === "recreatedByOthers" && (
           <div className="recreated-alert-box">
             <div className="alert-content">

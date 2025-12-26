@@ -412,6 +412,11 @@ function StaffHome() {
                   return (
                     <div key={req._id} className="col-md-6 col-lg-4">
                       <div className={`status-card ${statusClass}`}>
+                        {req.isResubmitted && (
+                          <div className="resubmitted-badge">
+                            <span>✓ Resubmitted</span>
+                          </div>
+                        )}
                         <h5 style={{ fontWeight: 700, color: '#1e293b', marginBottom: '0.75rem' }}>{req.eventName}</h5>
                         <p style={{ margin: '0.25rem 0', color: '#475569' }}>
                           <strong>Date:</strong> {req.eventDate}
