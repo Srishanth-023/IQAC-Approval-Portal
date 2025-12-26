@@ -63,23 +63,71 @@ IQAC-Approval-Portal/
 │   │   └── User.js         # Role user schema
 │   ├── server.js           # Main backend server
 │   ├── package.json
+│   ├── README.md
 │   └── .env               # Environment variables (gitignored)
 │
 ├── frontend/
+│   ├── public/
+│   │   ├── index.html
+│   │   ├── manifest.json
+│   │   └── robots.txt
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── AdminDashboard.js
-│   │   │   ├── AdminAllRequests.js
-│   │   │   ├── AddStaff.js
-│   │   │   ├── AddHod.js
-│   │   │   ├── StaffHome.js
-│   │   │   ├── IQACHome.js
-│   │   │   ├── RoleDashboard.js
-│   │   │   └── ... (other components)
+│   │   │   ├── cards/
+│   │   │   │   ├── ApprovalHistoryCard.js
+│   │   │   │   ├── ApprovalLetter.js
+│   │   │   │   ├── FinalApprovalLetterPreview.js
+│   │   │   │   ├── RoleRow.js
+│   │   │   │   └── index.js
+│   │   │   ├── common/
+│   │   │   │   ├── IQACWorkflowSummary.js
+│   │   │   │   ├── ProtectedRoute.js
+│   │   │   │   ├── WorkflowTimeline.js
+│   │   │   │   └── index.js
+│   │   │   ├── hooks/
+│   │   │   │   ├── useDisableBack.js
+│   │   │   │   └── index.js
+│   │   │   ├── modals/
+│   │   │   │   ├── ActionPopup.js
+│   │   │   │   ├── CreateRequestPopup.js
+│   │   │   │   ├── RequestDetailModal.js
+│   │   │   │   ├── SharedModal.js
+│   │   │   │   └── index.js
+│   │   │   ├── pages/
+│   │   │   │   ├── admin/
+│   │   │   │   │   ├── AddHod.js
+│   │   │   │   │   ├── AddStaff.js
+│   │   │   │   │   ├── AdminAllRequests.js
+│   │   │   │   │   ├── AdminDashboard.js
+│   │   │   │   │   └── index.js
+│   │   │   │   ├── auth/
+│   │   │   │   │   ├── AdminLogin.js
+│   │   │   │   │   ├── Login.js
+│   │   │   │   │   ├── Login.css
+│   │   │   │   │   └── index.js
+│   │   │   │   ├── role/
+│   │   │   │   │   ├── IQACHome.js
+│   │   │   │   │   ├── PrincipalRequests.js
+│   │   │   │   │   ├── RoleDashboard.js
+│   │   │   │   │   ├── RoleRequestHistory.js
+│   │   │   │   │   └── index.js
+│   │   │   │   ├── staff/
+│   │   │   │   │   ├── AllRequests.js
+│   │   │   │   │   ├── StaffHome.js
+│   │   │   │   │   └── index.js
+│   │   │   │   ├── TrackEventRequests.js
+│   │   │   │   └── index.js
+│   │   │   └── index.js
+│   │   ├── styles/
+│   │   │   └── Dashboard.css
+│   │   ├── assets/          # Static assets
 │   │   ├── api.js          # API service layer
 │   │   ├── App.js
-│   │   └── index.js
+│   │   ├── App.css
+│   │   ├── index.js
+│   │   └── index.css
 │   ├── package.json
+│   ├── README.md
 │   └── .env               # Environment variables (gitignored)
 │
 └── README.md
