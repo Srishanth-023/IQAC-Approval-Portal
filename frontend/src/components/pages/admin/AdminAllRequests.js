@@ -231,9 +231,11 @@ export default function AdminAllRequests() {
                           </div>
                         </td>
                         <td>
-                          <span className={req.isCompleted ? "badge-custom badge-approved" : "badge-custom badge-pending"}>
-                            {req.overallStatus}
-                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '150px' }}>
+                            <span className={req.isCompleted ? "badge-custom badge-approved" : "badge-custom badge-pending"}>
+                              {req.overallStatus}
+                            </span>
+                          </div>
                         </td>
                         <td>
                           <button
