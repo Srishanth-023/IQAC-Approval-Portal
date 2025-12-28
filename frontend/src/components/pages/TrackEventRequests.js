@@ -238,11 +238,6 @@ export default function TrackEventRequests() {
 
     return (
       <div key={req._id} className={`request-tracking-card fade-in ${sectionType === 'recreatedByOthers' ? 'recreated-others-card' : ''}`}>
-        {hasReviewedBefore && (
-          <div className="resubmitted-badge-track">
-            <BsCheckCircle /> Resubmitted
-          </div>
-        )}
         {sectionType === "recreatedByOthers" && (
           <div className="recreated-alert-box">
             <div className="alert-content">
@@ -384,6 +379,11 @@ export default function TrackEventRequests() {
             {req.referenceNo && (
               <span className="meta-badge ref-badge">Ref: {req.referenceNo}</span>
             )}
+            {hasReviewedBefore && (
+              <span className="meta-badge resubmitted-meta-badge">
+                <BsCheckCircle /> Resubmitted
+              </span>
+            )}
           </div>
         </div>
         
@@ -457,7 +457,6 @@ export default function TrackEventRequests() {
           {sectionType === "completed" && req.isCompleted && (
             <button
               className="btn-success-custom"
-              style={{ marginLeft: '0.5rem' }}
               onClick={() => {
                 const link = document.createElement("a");
                 link.href = approvalLetterDownloadUrl(req._id);
