@@ -264,6 +264,12 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 8px -2px rgba(16, 185, 129, 0.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 .btn-success-custom:hover {
@@ -1393,6 +1399,14 @@
 .request-tracking-card {
   position: relative;
   margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Card body should grow to push footer down */
+.request-card-body {
+  flex: 1;
 }
 
 /* Card footer alignment */
@@ -1403,7 +1417,7 @@
   flex-wrap: wrap;
   padding-top: 1rem;
   border-top: 1px solid #e5e7eb;
-  margin-top: 1rem;
+  margin-top: auto;
 }
 
 /* Badge for footer - resubmitted indicator */
@@ -1435,7 +1449,10 @@
   box-shadow: 0 4px 8px -2px rgba(59, 130, 246, 0.4);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.375rem;
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 .btn-view-detail:hover {

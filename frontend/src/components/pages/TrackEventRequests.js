@@ -457,6 +457,7 @@ export default function TrackEventRequests() {
           {sectionType === "completed" && req.isCompleted && (
             <button
               className="btn-success-custom"
+              style={{ marginLeft: 'auto' }}
               onClick={() => {
                 const link = document.createElement("a");
                 link.href = approvalLetterDownloadUrl(req._id);
