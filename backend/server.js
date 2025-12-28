@@ -953,21 +953,30 @@ app.post("/api/requests/:id/action", async (req, res) => {
 // ===============================
 // APPROVAL REPORT (PDF)
 // ===============================
+// Cache logo base64 to avoid reading file on every request
+let cachedLogoBase64 = null;
+function getLogoBase64() {
+  if (cachedLogoBase64) return cachedLogoBase64;
+  
+  try {
+    const path = require("path");
+    const logoPath = path.join(__dirname, "..", "kite-logo.webp");
+    const logoBuffer = fs.readFileSync(logoPath);
+    cachedLogoBase64 = `data:image/webp;base64,${logoBuffer.toString("base64")}`;
+    return cachedLogoBase64;
+  } catch (err) {
+    console.error("Logo not found:", err.message);
+    return "";
+  }
+}
+
 app.get("/api/requests/:id/approval-letter", async (req, res) => {
   try {
     const doc = await Request.findById(req.params.id);
     if (!doc) return res.status(404).send("Not found");
 
-    // Read and convert logo to base64
-    const path = require("path");
-    const logoPath = path.join(__dirname, "..", "kite-logo.webp");
-    let logoBase64 = "";
-    try {
-      const logoBuffer = fs.readFileSync(logoPath);
-      logoBase64 = `data:image/webp;base64,${logoBuffer.toString("base64")}`;
-    } catch (err) {
-      console.error("Logo not found:", err.message);
-    }
+    // Use cached logo
+    const logoBase64 = getLogoBase64();
 
     // Show ALL approvals in chronological order (not just unique roles)
     const rows = (doc.approvals || [])
@@ -1150,60 +1159,60 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
       </html>
     `;
 
-    // Generate approval letter PDF
-    const file = { content: htmlContent };
-    const options = { 
-      format: 'A4',
-      margin: { top: '40px', right: '40px', bottom: '40px', left: '40px' }
-    };
+    // Generate approval letter PDF and fetch original report in parallel
+    const [approvalLetterBuffer, originalPdfBuffer] = await Promise.all([
+      htmlPdf.generatePdf(file, options),
+      (async () => {
+        if (!doc.reportPath) return null;
+        
+        try {
+          const command = new GetObjectCommand({
+            Bucket: process.env.AWS_BUCKET,
+            Key: doc.reportPath,
+          });
+          
+          const s3Response = await s3.send(command);
+          
+          // Convert stream to buffer more efficiently
+          const chunks = [];
+          for await (const chunk of s3Response.Body) {
+            chunks.push(chunk);
+          }
+          const buffer = Buffer.concat(chunks);
+          
+          if (!buffer || buffer.length === 0) {
+            throw new Error("Downloaded PDF is empty");
+          }
+          
+          return buffer;
+        } catch (error) {
+          console.error("Error fetching original PDF:", error.message);
+          return null;
+        }
+      })()
+    ]);
 
-    const approvalLetterBuffer = await htmlPdf.generatePdf(file, options);
-
-    // Merge with original uploaded PDF if it exists
+    // Merge PDFs if original exists
     let finalPdfBuffer = approvalLetterBuffer;
     
-    if (doc.reportPath) {
+    if (originalPdfBuffer) {
       try {
-        // Get the key - reportPath is already just the key (e.g., "reports/12345_file.pdf")
-        const key = doc.reportPath;
-        
-        // Get object directly from S3 instead of using presigned URL
-        const command = new GetObjectCommand({
-          Bucket: process.env.AWS_BUCKET,
-          Key: key,
-        });
-        
-        const s3Response = await s3.send(command);
-        
-        // Convert stream to buffer
-        const chunks = [];
-        for await (const chunk of s3Response.Body) {
-          chunks.push(chunk);
-        }
-        const originalPdfBuffer = Buffer.concat(chunks);
-        
-        if (!originalPdfBuffer || originalPdfBuffer.length === 0) {
-          throw new Error("Downloaded PDF is empty");
-        }
-        
         // Merge PDFs using pdf-lib
         const mergedPdf = await PDFDocument.create();
         
-        // Load and add original report PDF pages FIRST (staff's uploaded document)
-        const originalPdf = await PDFDocument.load(originalPdfBuffer);
+        // Load both PDFs in parallel
+        const [originalPdf, approvalPdf] = await Promise.all([
+          PDFDocument.load(originalPdfBuffer),
+          PDFDocument.load(approvalLetterBuffer)
+        ]);
         
+        // Copy pages from original report FIRST
         const originalPages = await mergedPdf.copyPages(originalPdf, originalPdf.getPageIndices());
-        for (const page of originalPages) {
-          mergedPdf.addPage(page);
-        }
+        originalPages.forEach(page => mergedPdf.addPage(page));
         
-        // Load and append approval letter PDF pages SECOND
-        const approvalPdf = await PDFDocument.load(approvalLetterBuffer);
-        
+        // Copy pages from approval letter SECOND
         const approvalPages = await mergedPdf.copyPages(approvalPdf, approvalPdf.getPageIndices());
-        for (const page of approvalPages) {
-          mergedPdf.addPage(page);
-        }
+        approvalPages.forEach(page => mergedPdf.addPage(page));
         
         // Save merged PDF
         const mergedPdfBytes = await mergedPdf.save();
@@ -1211,7 +1220,6 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
       } catch (mergeError) {
         console.error("PDF merge error:", mergeError.message);
         // If merge fails, just send the approval letter
-        finalPdfBuffer = approvalLetterBuffer;
       }
     }
 
