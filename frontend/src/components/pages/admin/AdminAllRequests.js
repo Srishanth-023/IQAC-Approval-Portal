@@ -188,9 +188,9 @@ export default function AdminAllRequests() {
                     <th>Event</th>
                     <th>Date</th>
                     <th>Purpose</th>
-                    <th>Status</th>
-                    <th>Report</th>
-                    <th>Actions</th>
+                    <th style={{ textAlign: 'center' }}>Status</th>
+                    <th style={{ textAlign: 'center' }}>Report</th>
+                    <th style={{ textAlign: 'center' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -230,14 +230,14 @@ export default function AdminAllRequests() {
                             )}
                           </div>
                         </td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '150px' }}>
-                            <span className={req.isCompleted ? "badge-custom badge-approved" : "badge-custom badge-pending"}>
+                        <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.25rem 0' }}>
+                            <span className={req.isCompleted ? "badge-custom badge-approved" : "badge-custom badge-pending"} style={{ minWidth: '140px', maxWidth: '180px' }}>
                               {req.overallStatus}
                             </span>
                           </div>
                         </td>
-                        <td>
+                        <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                           <button
                             className="btn-primary-custom"
                             style={{ fontSize: "0.8rem", padding: "0.4rem 0.8rem" }}
@@ -246,7 +246,7 @@ export default function AdminAllRequests() {
                             <BsFileEarmarkText style={{ marginRight: '0.25rem' }} /> View Letter
                           </button>
                         </td>
-                        <td>
+                        <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                           <button
                             className="btn-danger-custom"
                             style={{ fontSize: "0.8rem", padding: "0.4rem 0.8rem" }}
