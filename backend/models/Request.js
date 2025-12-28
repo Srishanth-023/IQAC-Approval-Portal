@@ -23,6 +23,7 @@ const requestSchema = new mongoose.Schema(
     eventName: { type: String, required: true },
     eventDate: { type: String, required: true }, // or Date if you want
     purpose: { type: String, required: true },
+    originalPurpose: { type: String, default: null }, // Store original purpose when recreated
     reportPath: { type: String, default: null },
 
     currentRole: { type: String, default: "HOD" },

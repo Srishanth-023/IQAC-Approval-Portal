@@ -320,6 +320,14 @@ function IQACHome() {
                         <strong>Department:</strong> {req.department}
                       </p>
                       <p style={{ margin: '0.25rem 0', color: '#475569' }}>
+                        <strong>Purpose:</strong> {req.purpose?.length > 100 ? `${req.purpose.substring(0, 100)}...` : req.purpose}
+                      </p>
+                      {req.originalPurpose && req.originalPurpose !== req.purpose && (
+                        <p style={{ margin: '0.25rem 0', color: '#dc2626', fontSize: '0.875rem', fontStyle: 'italic' }}>
+                          <strong>⚠️ Purpose Modified</strong> (Original: {req.originalPurpose?.length > 80 ? `${req.originalPurpose.substring(0, 80)}...` : req.originalPurpose})
+                        </p>
+                      )}
+                      <p style={{ margin: '0.25rem 0', color: '#475569' }}>
                         <strong>Status:</strong>{" "}
                         <span className="badge-custom badge-pending">{req.overallStatus}</span>
                       </p>

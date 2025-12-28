@@ -774,7 +774,13 @@ app.post("/api/requests/:id/edit", upload.single("event_report"), async (req, re
     // Update fields
     if (event_name) doc.eventName = event_name;
     if (event_date) doc.eventDate = event_date;
-    if (purpose) doc.purpose = purpose;
+    if (purpose) {
+      // Store original purpose if this is the first edit and purpose is changing
+      if (!doc.originalPurpose && doc.purpose !== purpose) {
+        doc.originalPurpose = doc.purpose;
+      }
+      doc.purpose = purpose;
+    }
     
     // If new file uploaded, update it
     if (req.file) {

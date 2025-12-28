@@ -187,6 +187,7 @@ export default function AdminAllRequests() {
                     <th>Department</th>
                     <th>Event</th>
                     <th>Date</th>
+                    <th>Purpose</th>
                     <th>Status</th>
                     <th>Report</th>
                     <th>Actions</th>
@@ -195,7 +196,7 @@ export default function AdminAllRequests() {
                 <tbody>
                   {filteredRequests.length === 0 ? (
                     <tr>
-                      <td colSpan="9" className="text-center" style={{ padding: "2rem", color: "#64748b" }}>
+                      <td colSpan="10" className="text-center" style={{ padding: "2rem", color: "#64748b" }}>
                         No requests found
                       </td>
                     </tr>
@@ -217,6 +218,18 @@ export default function AdminAllRequests() {
                           </div>
                         </td>
                         <td>{req.eventDate}</td>
+                        <td>
+                          <div>
+                            <div style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {req.purpose?.length > 60 ? `${req.purpose.substring(0, 60)}...` : req.purpose}
+                            </div>
+                            {req.originalPurpose && req.originalPurpose !== req.purpose && (
+                              <small style={{ color: '#dc2626', fontStyle: 'italic', display: 'block' }}>
+                                ⚠️ Modified
+                              </small>
+                            )}
+                          </div>
+                        </td>
                         <td>
                           <span className={req.isCompleted ? "badge-custom badge-approved" : "badge-custom badge-pending"}>
                             {req.overallStatus}

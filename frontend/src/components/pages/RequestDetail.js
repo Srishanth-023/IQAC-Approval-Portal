@@ -139,8 +139,25 @@ export default function RequestDetail() {
               </div>
               <div className="col-12 mb-3">
                 <label style={{ fontWeight: 600, color: '#64748b', fontSize: '0.875rem' }}>Event Purpose</label>
-                <p style={{ margin: '0.25rem 0 0 0', fontSize: '1rem', lineHeight: '1.6' }}>{request.eventPurpose}</p>
+                <p style={{ margin: '0.25rem 0 0 0', fontSize: '1rem', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{request.purpose}</p>
               </div>
+              {request.originalPurpose && request.originalPurpose !== request.purpose && (
+                <div className="col-12 mb-3">
+                  <div style={{ 
+                    background: '#fef2f2', 
+                    border: '2px solid #fca5a5', 
+                    borderRadius: '0.5rem', 
+                    padding: '1rem' 
+                  }}>
+                    <label style={{ fontWeight: 600, color: '#dc2626', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      ⚠️ Original Purpose (Modified during recreation)
+                    </label>
+                    <p style={{ margin: '0.5rem 0 0 0', fontSize: '1rem', lineHeight: '1.6', color: '#991b1b', fontStyle: 'italic', whiteSpace: 'pre-wrap' }}>
+                      {request.originalPurpose}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

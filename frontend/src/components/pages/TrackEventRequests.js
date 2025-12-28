@@ -397,6 +397,18 @@ export default function TrackEventRequests() {
             <span className="info-value">{new Date(req.eventDate).toLocaleDateString()}</span>
           </div>
           <div className="request-info-row">
+            <span className="info-label">Purpose:</span>
+            <span className="info-value">{req.purpose?.length > 150 ? `${req.purpose.substring(0, 150)}...` : req.purpose}</span>
+          </div>
+          {req.originalPurpose && req.originalPurpose !== req.purpose && (
+            <div className="request-info-row" style={{ background: '#fef2f2', padding: '0.5rem', borderRadius: '0.375rem', marginTop: '0.5rem' }}>
+              <span className="info-label" style={{ color: '#dc2626' }}>⚠️ Original Purpose:</span>
+              <span className="info-value" style={{ color: '#dc2626', fontStyle: 'italic' }}>
+                {req.originalPurpose?.length > 130 ? `${req.originalPurpose.substring(0, 130)}...` : req.originalPurpose}
+              </span>
+            </div>
+          )}
+          <div className="request-info-row">
             <span className="info-label">Current Status:</span>
             <span className="info-value status-highlight">{getCurrentStatus()}</span>
           </div>

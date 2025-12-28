@@ -98,6 +98,8 @@ function RoleDashboard() {
       eventDate: request.eventDate,
       staffName: request.staffName,
       department: request.department,
+      purpose: request.purpose,
+      originalPurpose: request.originalPurpose,
       approvals: request.approvals || []
     });
     setShowRemarksModal(true);
@@ -293,6 +295,7 @@ function RoleDashboard() {
                       <th>Staff</th>
                       <th>Department</th>
                       <th>Event Date</th>
+                      <th>Purpose</th>
                       <th>Report</th>
                       <th>Comments</th>
                       <th>Actions</th>
@@ -318,6 +321,16 @@ function RoleDashboard() {
                         <td>{r.staffName}</td>
                         <td><span className="badge-custom badge-processing">{r.department}</span></td>
                         <td>{r.eventDate}</td>
+                        <td>
+                          <div>
+                            <div>{r.purpose?.length > 60 ? `${r.purpose.substring(0, 60)}...` : r.purpose}</div>
+                            {r.originalPurpose && r.originalPurpose !== r.purpose && (
+                              <small style={{ color: '#dc2626', fontStyle: 'italic', display: 'block', marginTop: '0.25rem' }}>
+                                ⚠️ Modified from: {r.originalPurpose?.length > 50 ? `${r.originalPurpose.substring(0, 50)}...` : r.originalPurpose}
+                              </small>
+                            )}
+                          </div>
+                        </td>
                         <td>
                           {r.reportUrl ? (
                             <button 
@@ -412,7 +425,13 @@ function RoleDashboard() {
                   <p style={{ margin: '0.25rem 0' }}><strong>Event Name:</strong> {selectedRequestRemarks.eventName}</p>
                   <p style={{ margin: '0.25rem 0' }}><strong>Staff:</strong> {selectedRequestRemarks.staffName}</p>
                   <p style={{ margin: '0.25rem 0' }}><strong>Department:</strong> {selectedRequestRemarks.department}</p>
-                  <p style={{ margin: '0' }}><strong>Event Date:</strong> {selectedRequestRemarks.eventDate}</p>
+                  <p style={{ margin: '0.25rem 0' }}><strong>Event Date:</strong> {selectedRequestRemarks.eventDate}</p>
+                  <p style={{ margin: '0.25rem 0' }}><strong>Purpose:</strong> {selectedRequestRemarks.purpose}</p>
+                  {selectedRequestRemarks.originalPurpose && selectedRequestRemarks.originalPurpose !== selectedRequestRemarks.purpose && (
+                    <p style={{ margin: '0.25rem 0', color: '#dc2626', fontStyle: 'italic' }}>
+                      <strong>⚠️ Original Purpose:</strong> {selectedRequestRemarks.originalPurpose}
+                    </p>
+                  )}
                 </div>
               </div>
               
