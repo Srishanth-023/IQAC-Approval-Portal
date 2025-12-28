@@ -4,7 +4,7 @@ import { fetchTrackingRequests, approvalLetterDownloadUrl } from "../../api";
 import { toast } from "react-toastify";
 import "../../styles/Dashboard.css";
 import logo from '../../assets/kite-logo.png';
-import { BsArrowLeft, BsClockHistory, BsCheckCircle, BsArrowRepeat, BsExclamationCircle } from "react-icons/bs";
+import { BsArrowLeft, BsClockHistory, BsCheckCircle, BsArrowRepeat, BsExclamationCircle, BsClock } from "react-icons/bs";
 
 export default function TrackEventRequests() {
   const navigate = useNavigate();
@@ -425,7 +425,8 @@ export default function TrackEventRequests() {
                   <div key={idx} className={`approval-step ${approval.status.toLowerCase()}`}>
                     <span className="approval-role">{approval.role}</span>
                     <span className="approval-status-icon">
-                      {approval.status === "Approved" ? "✓" : "↻"}
+                      {approval.status === "Approved" ? "✓" : 
+                       approval.status === "No Response" ? <BsClock /> : "↻"}
                     </span>
                   </div>
                 ))}
@@ -953,13 +954,26 @@ export default function TrackEventRequests() {
           background: #fadbd8;
           color: #e74c3c;
         }
+        
+        .approval-step.no.response {
+          background: #fff9e6;
+          color: #856404;
+        }
 
         .approval-role {
           font-size: 12px;
         }
 
         .approval-status-icon {
-          font-size: 14px;
+          font-size: 12px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .approval-status-icon svg {
+          width: 12px;
+          height: 12px;
         }
 
         .request-remarks {
