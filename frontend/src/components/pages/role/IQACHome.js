@@ -310,24 +310,31 @@ function IQACHome() {
                       <BsClipboardData style={{ marginRight: '0.5rem' }} /> {req.eventName}
                     </h5>
                     <div style={{ marginBottom: '1rem' }}>
-                      <p style={{ margin: '0.25rem 0', color: '#475569' }}>
+                      <p style={{ margin: '0.6rem 0', color: '#475569' }}>
                         <strong>Event Date:</strong> {req.eventDate}
                       </p>
-                      <p style={{ margin: '0.25rem 0', color: '#475569' }}>
+                      <p style={{ margin: '0.6rem 0', color: '#475569' }}>
                         <strong>Staff:</strong> {req.staffName}
                       </p>
-                      <p style={{ margin: '0.25rem 0', color: '#475569' }}>
+                      <p style={{ margin: '0.6rem 0', color: '#475569' }}>
                         <strong>Department:</strong> {req.department}
                       </p>
                       <p style={{ margin: '0.25rem 0', color: '#475569' }}>
-                        <strong>Purpose:</strong> {req.purpose?.length > 100 ? `${req.purpose.substring(0, 100)}...` : req.purpose}
+                        <strong>Purpose:</strong> <span style={{ 
+                          display: '-webkit-box', 
+                          WebkitLineClamp: 2, 
+                          WebkitBoxOrient: 'vertical', 
+                          overflow: 'hidden', 
+                          textOverflow: 'ellipsis',
+                          lineHeight: '1.5'
+                        }}>{req.purpose}</span>
                       </p>
                       {req.originalPurpose && req.originalPurpose !== req.purpose && (
-                        <p style={{ margin: '0.25rem 0', color: '#dc2626', fontSize: '0.875rem', fontStyle: 'italic' }}>
+                        <p style={{ margin: '0.6rem 0', color: '#dc2626', fontSize: '0.875rem', fontStyle: 'italic' }}>
                           <strong>⚠️ Purpose Modified</strong> (Original: {req.originalPurpose?.length > 80 ? `${req.originalPurpose.substring(0, 80)}...` : req.originalPurpose})
                         </p>
                       )}
-                      <p style={{ margin: '0.25rem 0', color: '#475569' }}>
+                      <p style={{ marginTop: '1rem', marginBottom: '0.6rem', color: '#475569' }}>
                         <strong>Status:</strong>{" "}
                         <span className="badge-custom badge-pending">{req.overallStatus}</span>
                       </p>
