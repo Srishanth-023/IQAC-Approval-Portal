@@ -26,8 +26,10 @@ function ApprovalHistoryCard({ approvals }) {
               className={
                 item.status?.toLowerCase().includes("approved") 
                   ? "badge-custom badge-approved" 
-                  : item.status?.toLowerCase().includes("reject")
+                  : item.status?.toLowerCase().includes("reject") || item.status?.toLowerCase().includes("recreat")
                   ? "badge-custom badge-rejected"
+                  : item.status?.toLowerCase().includes("no response")
+                  ? "badge-custom badge-warning"
                   : "badge-custom badge-pending"
               }
             >

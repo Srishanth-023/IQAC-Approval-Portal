@@ -6,8 +6,10 @@ function RoleRow({ request, onView, onAction }) {
     const statusLower = status?.toLowerCase() || "";
     if (statusLower.includes("approved") || statusLower.includes("completed")) {
       return "badge-custom badge-approved";
-    } else if (statusLower.includes("reject")) {
+    } else if (statusLower.includes("reject") || statusLower.includes("recreat")) {
       return "badge-custom badge-rejected";
+    } else if (statusLower.includes("no response")) {
+      return "badge-custom badge-warning";
     }
     return "badge-custom badge-pending";
   };

@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const approvalSchema = new mongoose.Schema(
   {
     role: { type: String, required: true },
-    status: { type: String, enum: ["Approved", "Recreated"], required: true },
+    status: { type: String, enum: ["Approved", "Recreated", "No Response"], required: true },
     comments: { type: String, default: "" },
     decidedAt: { type: Date, default: Date.now },
     recreatedBy: { type: String, default: null }, // Track who recreated the request
@@ -34,6 +34,12 @@ const requestSchema = new mongoose.Schema(
 
     isCompleted: { type: Boolean, default: false },
     isResubmitted: { type: Boolean, default: false }, // Flag for recreated events that have been resubmitted
+    
+    // Auto-escalation tracking
+    currentRoleStartTime: { type: Date, default: null }, // When request reached current role
+    noResponseRoles: [{ type: String }], // Roles that didn't respond and were auto-escalated
+    roleTimeouts: { type: Map, of: Date }, // Track when each role received the request
+    lockedOutRoles: [{ type: String }], // Roles that are locked out from taking action
   },
   { timestamps: true }
 );

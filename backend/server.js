@@ -38,6 +38,143 @@ app.use(cors({
 // ===============================
 const DEPARTMENTS = ["AI&DS", "CSE", "ECE", "IT", "MECH", "AI&ML", "CYS"];
 
+// Auto-escalation timeout: 1 minute (60000ms) for testing
+// Change to desired production value later (e.g., 1 day = 86400000ms)
+const AUTO_ESCALATION_TIMEOUT = 60000; // 1 minute
+
+// Role hierarchy - Faculty → HOD → IQAC → Principal → Director → AO → CEO
+const ROLE_HIERARCHY = ["HOD", "IQAC", "PRINCIPAL", "DIRECTOR", "AO", "CEO"];
+
+// ===============================
+// AUTO-ESCALATION HELPER FUNCTIONS
+// ===============================
+function getNextRoleInHierarchy(currentRole, workflowRoles) {
+  // For HOD, always go to IQAC
+  if (currentRole === "HOD") {
+    return "IQAC";
+  }
+  
+  // For IQAC, go to first role in workflow (if exists)
+  if (currentRole === "IQAC") {
+    return workflowRoles && workflowRoles.length > 0 ? workflowRoles[0] : null;
+  }
+  
+  // For workflow roles, go to next in sequence
+  if (workflowRoles && workflowRoles.length > 0) {
+    const idx = workflowRoles.indexOf(currentRole);
+    if (idx !== -1 && idx < workflowRoles.length - 1) {
+      return workflowRoles[idx + 1];
+    }
+  }
+  
+  return null; // No next role, mark as completed
+}
+
+function shouldAutoEscalate(request) {
+  // Don't auto-escalate if request is completed or waiting for staff
+  if (!request.currentRole || request.isCompleted) {
+    return false;
+  }
+  
+  // NEVER auto-escalate IQAC - it's mandatory
+  if (request.currentRole === "IQAC") {
+    return false;
+  }
+  
+  // Check if role is locked out (can't act until recreation)
+  if (request.lockedOutRoles && request.lockedOutRoles.includes(request.currentRole)) {
+    return false;
+  }
+  
+  // Check if timeout has elapsed
+  if (!request.currentRoleStartTime) {
+    return false;
+  }
+  
+  const timeElapsed = Date.now() - new Date(request.currentRoleStartTime).getTime();
+  return timeElapsed >= AUTO_ESCALATION_TIMEOUT;
+}
+
+async function performAutoEscalation(request) {
+  try {
+    const currentRole = request.currentRole;
+    
+    // Add "No Response" approval
+    request.approvals.push({
+      role: currentRole,
+      status: "No Response",
+      comments: "Auto-escalated due to no response within timeout period",
+      decidedAt: new Date()
+    });
+    
+    // Add to noResponseRoles
+    if (!request.noResponseRoles) {
+      request.noResponseRoles = [];
+    }
+    if (!request.noResponseRoles.includes(currentRole)) {
+      request.noResponseRoles.push(currentRole);
+    }
+    
+    // Lock out this role from taking action in future
+    if (!request.lockedOutRoles) {
+      request.lockedOutRoles = [];
+    }
+    if (!request.lockedOutRoles.includes(currentRole)) {
+      request.lockedOutRoles.push(currentRole);
+    }
+    
+    // Get next role
+    const nextRole = getNextRoleInHierarchy(currentRole, request.workflowRoles);
+    
+    if (nextRole) {
+      request.currentRole = nextRole;
+      request.overallStatus = `Waiting approval for ${nextRole}`;
+      request.currentRoleStartTime = new Date();
+      
+      console.log(`Auto-escalated request ${request._id} from ${currentRole} to ${nextRole}`);
+      
+      // TODO: Send notification to next role and the skipped role
+    } else {
+      // No next role, mark as completed
+      request.currentRole = null;
+      request.overallStatus = "Completed";
+      request.isCompleted = true;
+      request.currentRoleStartTime = null;
+      
+      console.log(`Auto-escalated request ${request._id} - marked as completed`);
+    }
+    
+    await request.save();
+    return true;
+  } catch (error) {
+    console.error(`Error auto-escalating request ${request._id}:`, error);
+    return false;
+  }
+}
+
+// Background job to check for requests needing auto-escalation
+function startAutoEscalationJob() {
+  setInterval(async () => {
+    try {
+      // Find all active requests (not completed, has currentRole)
+      const activeRequests = await Request.find({
+        isCompleted: false,
+        currentRole: { $ne: null, $exists: true }
+      });
+      
+      for (const request of activeRequests) {
+        if (shouldAutoEscalate(request)) {
+          await performAutoEscalation(request);
+        }
+      }
+    } catch (error) {
+      console.error("Auto-escalation job error:", error);
+    }
+  }, 10000); // Check every 10 seconds
+  
+  console.log("Auto-escalation job started - checking every 10 seconds");
+}
+
 // ===============================
 // AWS S3 CONFIG (SDK v3)
 // ===============================
@@ -456,6 +593,9 @@ app.post("/api/requests", upload.single("event_report"), async (req, res) => {
       workflowRoles: [],
       approvals: [],
       isCompleted: false,
+      currentRoleStartTime: new Date(), // Start tracking timeout
+      noResponseRoles: [],
+      lockedOutRoles: [],
     });
 
     res.json({ message: "Request created", request: newReq });
@@ -498,6 +638,8 @@ app.put("/api/requests/:id/resubmit", upload.single("event_report"), async (req,
     doc.overallStatus = "Waiting approval for HOD (Resubmitted)";
     doc.isCompleted = false;
     doc.isResubmitted = true; // Flag as resubmitted
+    doc.currentRoleStartTime = new Date(); // Reset timeout for resubmission
+    doc.lockedOutRoles = []; // Clear locked out roles on recreation
     
     await doc.save();
     
@@ -646,6 +788,8 @@ app.post("/api/requests/:id/edit", upload.single("event_report"), async (req, re
     doc.overallStatus = "Waiting approval for HOD (Resubmitted after recreation)";
     doc.isCompleted = false;
     doc.isResubmitted = true; // Flag as resubmitted
+    doc.currentRoleStartTime = new Date(); // Reset timeout
+    doc.lockedOutRoles = []; // Clear locked out roles
     // IMPORTANT: Keep workflowRoles and referenceNo from original IQAC approval
     // Do NOT reset them - HOD needs these to route correctly
     
@@ -670,6 +814,13 @@ app.post("/api/requests/:id/action", async (req, res) => {
 
     const role = doc.currentRole;
     const now = new Date();
+    
+    // Check if role is locked out (auto-escalated previously)
+    if (doc.lockedOutRoles && doc.lockedOutRoles.includes(role)) {
+      return res.status(403).json({ 
+        error: "This role cannot take action as it was auto-escalated. Action can only be taken when request comes back for recreation." 
+      });
+    }
 
     // HOD special logic - always forward to IQAC
     if (role === "HOD" && action === "approve") {
@@ -684,6 +835,7 @@ app.post("/api/requests/:id/action", async (req, res) => {
       // After HOD approval, always send to IQAC
       doc.currentRole = "IQAC";
       doc.overallStatus = "Waiting approval for IQAC";
+      doc.currentRoleStartTime = new Date(); // Start timer for IQAC
 
       await doc.save();
       return res.json({ message: "HOD Approved, forwarded to IQAC" });
@@ -724,11 +876,13 @@ app.post("/api/requests/:id/action", async (req, res) => {
       if (doc.workflowRoles && doc.workflowRoles.length > 0) {
         doc.currentRole = doc.workflowRoles[0];
         doc.overallStatus = `Waiting approval for ${doc.workflowRoles[0]}`;
+        doc.currentRoleStartTime = new Date(); // Start timer for first workflow role
       } else {
         // No workflow selected, mark as completed
         doc.currentRole = null;
         doc.overallStatus = "Completed";
         doc.isCompleted = true;
+        doc.currentRoleStartTime = null;
       }
 
       await doc.save();
@@ -752,6 +906,7 @@ app.post("/api/requests/:id/action", async (req, res) => {
         doc.overallStatus = `${role} requested recreation`;
       }
       doc.isCompleted = false;
+      doc.currentRoleStartTime = null; // Stop timer when sent for recreation
 
       await doc.save();
       return res.json({ message: "Recreate issued" });
@@ -773,10 +928,12 @@ app.post("/api/requests/:id/action", async (req, res) => {
       doc.currentRole = null;
       doc.overallStatus = "Completed";
       doc.isCompleted = true;
+      doc.currentRoleStartTime = null; // Stop timer when completed
     } else {
       doc.currentRole = seq[idx + 1];
       doc.overallStatus = `Waiting approval for ${doc.currentRole}`;
       doc.isCompleted = false;
+      doc.currentRoleStartTime = new Date(); // Start timer for next role
     }
 
     await doc.save();
@@ -817,6 +974,8 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
               ? "✔ Approved"
               : a.status === "Recreated"
               ? "↩ Recreated"
+              : a.status === "No Response"
+              ? "No Response (Auto-escalated)"
               : a.status || "Pending"
           }</td>
           <td style="padding: 8px; border: 1px solid #ddd;">${a.comments || "-"}</td>
@@ -1599,6 +1758,8 @@ app.get("/api/tracking/requests", async (req, res) => {
 // ===============================
 // START SERVER
 // ===============================
-app.listen(5000, () =>
-  console.log("Backend running on http://localhost:5000")
-);
+app.listen(5000, () => {
+  console.log("Backend running on http://localhost:5000");
+  // Start the auto-escalation background job
+  startAutoEscalationJob();
+});
