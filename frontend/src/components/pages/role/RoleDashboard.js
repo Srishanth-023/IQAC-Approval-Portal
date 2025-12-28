@@ -38,6 +38,7 @@ function RoleDashboard() {
   // Modal state for viewing remarks
   const [showRemarksModal, setShowRemarksModal] = useState(false);
   const [selectedRequestRemarks, setSelectedRequestRemarks] = useState(null);
+  const [showPurposeModal, setShowPurposeModal] = useState(null);
 
   // ------------------------------------------
   // LOGOUT
@@ -324,6 +325,23 @@ function RoleDashboard() {
                         <td>
                           <div>
                             <div>{r.purpose?.length > 60 ? `${r.purpose.substring(0, 60)}...` : r.purpose}</div>
+                            {r.purpose?.length > 60 && (
+                              <button
+                                onClick={() => setShowPurposeModal(r)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#3b82f6',
+                                  fontSize: '0.75rem',
+                                  cursor: 'pointer',
+                                  padding: '0.125rem 0',
+                                  textDecoration: 'underline',
+                                  marginTop: '0.25rem'
+                                }}
+                              >
+                                See more
+                              </button>
+                            )}
                             {r.originalPurpose && r.originalPurpose !== r.purpose && (
                               <small style={{ color: '#dc2626', fontStyle: 'italic', display: 'block', marginTop: '0.25rem' }}>
                                 ⚠️ Modified from: {r.originalPurpose?.length > 50 ? `${r.originalPurpose.substring(0, 50)}...` : r.originalPurpose}
@@ -397,6 +415,80 @@ function RoleDashboard() {
           </div>
         </div>
       </div>
+      
+      {/* PURPOSE MODAL */}
+      {showPurposeModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem'
+          }}
+          onClick={() => setShowPurposeModal(null)}
+        >
+          <div 
+            style={{
+              background: 'white',
+              borderRadius: '1rem',
+              padding: '2rem',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '80vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1.5rem' }}>
+              <div>
+                <h3 style={{ margin: 0, color: '#1e3a8a', fontSize: '1.25rem', fontWeight: 700 }}>
+                  {showPurposeModal.eventName}
+                </h3>
+                <p style={{ margin: '0.5rem 0 0 0', color: '#64748b', fontSize: '0.875rem' }}>
+                  <strong>Department:</strong> {showPurposeModal.department} | <strong>Staff:</strong> {showPurposeModal.staffName}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPurposeModal(null)}
+                style={{
+                  background: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  padding: '0.5rem 1rem',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: 600
+                }}
+              >
+                Close
+              </button>
+            </div>
+            <div style={{ borderTop: '2px solid #e5e7eb', paddingTop: '1.5rem' }}>
+              <h4 style={{ margin: '0 0 1rem 0', color: '#334155', fontSize: '1rem', fontWeight: 600 }}>Purpose:</h4>
+              <p style={{ margin: 0, color: '#475569', lineHeight: '1.8', fontSize: '0.9375rem', whiteSpace: 'pre-wrap' }}>
+                {showPurposeModal.purpose}
+              </p>
+              {showPurposeModal.originalPurpose && showPurposeModal.originalPurpose !== showPurposeModal.purpose && (
+                <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#fef2f2', borderLeft: '4px solid #dc2626', borderRadius: '0.5rem' }}>
+                  <h4 style={{ margin: '0 0 0.75rem 0', color: '#dc2626', fontSize: '0.9375rem', fontWeight: 600 }}>⚠️ Original Purpose (Modified):</h4>
+                  <p style={{ margin: 0, color: '#991b1b', lineHeight: '1.8', fontSize: '0.875rem', fontStyle: 'italic', whiteSpace: 'pre-wrap' }}>
+                    {showPurposeModal.originalPurpose}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* REMARKS MODAL */}
       {showRemarksModal && selectedRequestRemarks && (
