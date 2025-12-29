@@ -362,13 +362,24 @@ function RoleDashboard() {
                           )}
                         </td>
                         <td>
-                          <textarea
-                            className="form-input-custom"
-                            placeholder="Enter comments..."
-                            value={comments[r._id] || ""}
-                            onChange={(e) => handleCommentChange(r._id, e.target.value)}
-                            style={{ minHeight: '60px', fontSize: '0.875rem' }}
-                          />
+                          <div style={{ position: 'relative' }}>
+                            <textarea
+                              className="form-input-custom"
+                              placeholder="Enter comments..."
+                              value={comments[r._id] || ""}
+                              onChange={(e) => handleCommentChange(r._id, e.target.value.slice(0, 400))}
+                              style={{ minHeight: '60px', fontSize: '0.875rem' }}
+                              maxLength="400"
+                            />
+                            <div style={{ 
+                              fontSize: '0.75rem', 
+                              color: '#64748b', 
+                              textAlign: 'right',
+                              marginTop: '0.25rem'
+                            }}>
+                              {(comments[r._id] || "").length}/400
+                            </div>
+                          </div>
                         </td>
                         <td>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>

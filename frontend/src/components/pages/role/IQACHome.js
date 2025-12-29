@@ -508,14 +508,18 @@ function IQACHome() {
                         <div className="form-group-custom">
                           <label className="form-label-custom" style={{ fontWeight: 600 }}>
                             Comments
+                            <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal', marginLeft: '0.5rem' }}>
+                              ({(comments[req._id] || "").length}/400)
+                            </span>
                           </label>
                           <textarea
                             className="form-input-custom"
                             placeholder="Enter comments (required for recreate)"
                             value={comments[req._id] || ""}
-                            onChange={(e) => handleCommentChange(req._id, e.target.value)}
+                            onChange={(e) => handleCommentChange(req._id, e.target.value.slice(0, 400))}
                             rows="2"
                             style={{ resize: 'vertical' }}
+                            maxLength="400"
                           />
                         </div>
 

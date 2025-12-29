@@ -121,14 +121,20 @@ function ActionPopup({ role, request, onSubmit, onClose }) {
 
           {/* Comments */}
           <div className="form-group-custom">
-            <label className="form-label-custom" style={{ fontWeight: "600" }}>Comments (optional)</label>
+            <label className="form-label-custom" style={{ fontWeight: "600" }}>
+              Comments (optional)
+              <span style={{ fontSize: "0.8rem", color: "#64748b", fontWeight: "normal", marginLeft: "0.5rem" }}>
+                ({comments.length}/400)
+              </span>
+            </label>
             <textarea
               className="form-input-custom"
               value={comments}
-              onChange={(e) => setComments(e.target.value)}
+              onChange={(e) => setComments(e.target.value.slice(0, 400))}
               rows="3"
               placeholder="Add any comments or notes..."
               style={{ resize: "vertical" }}
+              maxLength="400"
             />
           </div>
         </div>
