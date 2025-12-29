@@ -1731,6 +1731,7 @@ app.get("/api/tracking/requests", async (req, res) => {
 
       // RECREATED BY OTHERS: A higher authority recreated it after this authority approved
       // OR a lower authority recreated it (for IQAC seeing HOD recreations)
+      // BUT NOT if this authority recreated it themselves
       if (ownApproval && ownApproval.status === "Approved") {
         // Find the index of the LAST approval from this authority
         const ownApprovalIndex = req.approvals.map((a, idx) => a.role === role ? idx : -1)
@@ -1738,11 +1739,11 @@ app.get("/api/tracking/requests", async (req, res) => {
           .pop(); // Get the last index
         
         // Check if any approval after this one has "Recreated" status (higher authority recreated)
-        const recreatedAfterByHigher = req.approvals.slice(ownApprovalIndex + 1).find(a => a.status === "Recreated");
+        const recreatedAfterByHigher = req.approvals.slice(ownApprovalIndex + 1).find(a => a.status === "Recreated" && a.role !== role);
         
         // Check if any approval before this one has "Recreated" status (lower authority recreated after this authority approved)
         // This handles the case where IQAC approved, then HOD recreates on resubmission
-        const recreatedBeforeByLower = req.approvals.slice(0, ownApprovalIndex).find(a => a.status === "Recreated");
+        const recreatedBeforeByLower = req.approvals.slice(0, ownApprovalIndex).find(a => a.status === "Recreated" && a.role !== role);
         
         const recreatedApproval = recreatedAfterByHigher || recreatedBeforeByLower;
         
