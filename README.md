@@ -6,6 +6,9 @@ A comprehensive event approval workflow management system built with the MERN st
 
 The IQAC Approval Portal streamlines the event approval process across multiple hierarchical levels. Staff members can submit event requests that flow through various approval stages including HOD, IQAC, Principal, Director, AO, and CEO based on the workflow configuration.
 
+### Supported Departments
+AI&DS, CSE, ECE, IT, MECH, AI&ML, CYS, R&A, CSBS, S&H
+
 ## Features
 
 ### For Staff
@@ -38,20 +41,25 @@ The IQAC Approval Portal streamlines the event approval process across multiple 
 
 ### For Admin
 - Manage staff accounts (create, update, delete)
-- Manage HODs (assign, update, delete)
+- Manage HODs (assign, update, delete, reset passwords)
+- Manage all role accounts (IQAC, Principal, Director, AO, CEO)
+- Reset passwords for all role-based users
 - View all requests across departments
 - Filter requests by department and event name
 - Delete individual or all requests
 - Monitor system-wide activity
+- Department-wise HOD configuration
 
 ## Architecture
 
 ### Tech Stack
-- **Frontend**: React.js, React Router, Bootstrap 5, React Toastify
-- **Backend**: Node.js, Express.js
-- **Database**: MongoDB Atlas
-- **File Storage**: AWS S3
-- **PDF Generation**: html-pdf-node
+- **Frontend**: React.js (v18.3.1), React Router (v7.1.1), Bootstrap 5, React Toastify, React Icons
+- **Backend**: Node.js, Express.js (v4.19.2)
+- **Database**: MongoDB Atlas (Mongoose v8.3.2)
+- **File Storage**: AWS S3 (SDK v3)
+- **PDF Generation**: html-pdf-node, pdf-lib
+- **Authentication**: bcrypt (v6.0.0)
+- **Additional**: Compression, CORS, Multer
 
 ### Project Structure
 ```
@@ -136,7 +144,7 @@ IQAC-Approval-Portal/
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v14 or higher)
+- Node.js (v18 or higher recommended)
 - MongoDB Atlas account
 - AWS Account (for S3 bucket)
 
@@ -179,9 +187,22 @@ npm install
 ```bash
 cd ../frontend
 npm install --legacy-peer-deps
-npm install react-scripts --legacy-peer-deps
-npm install react-scripts@5.0.1 --save --legacy-peer-deps (or) npm install -g react-scripts
+```
+
+**Note**: If you encounter issues with `react-scripts`, you may need to:
+```bash
+npm install react-scripts@5.0.1 --save --legacy-peer-deps
+# OR
+npm install -g react-scripts
+```
+
+For ESLint configuration issues:
+```bash
 npm install eslint-config-react-app --legacy-peer-deps
+```
+
+On Windows PowerShell, to disable ESLint plugin:
+```powershell
 Set-Content -Path ".env" -Value "DISABLE_ESLINT_PLUGIN=true"
 ```
 
@@ -201,12 +222,12 @@ cd frontend
 react-scripts start
 ```
 
-#### Option 2: Run frontend with concurrent servers
+#### Option 2: Run with concurrent servers (Recommended)
 ```bash
 cd frontend
-react-scripts start
+npm start
 ```
-*(The frontend package.json is configured to run both servers concurrently)*
+*(The frontend package.json is configured to run both frontend and backend servers concurrently using the `concurrently` package)*
 
 ### Access the Application
 
@@ -233,6 +254,19 @@ Staff accounts must be created through the Admin Dashboard.
 - Continues through remaining workflow
 
 ## Key Features in Detail
+
+### Auto-Escalation System
+- Automatic request escalation after timeout (configurable, default: 1 minute for testing)
+- Prevents workflow bottlenecks
+- IQAC role is exempt from auto-escalation (mandatory review)
+- Locked-out roles system prevents repeated recreations
+
+### Tracking System
+- **In Progress**: Requests currently pending or approved by the authority
+- **Approved**: Requests approved by the authority
+- **Recreated by Own**: Requests recreated by the authority themselves
+- **Recreated by Others**: Requests recreated by other authorities after this authority's approval
+- **Fully Completed**: Requests approved by all authorities in the workflow
 
 ### Duplicate Detection
 - **Same Staff**: Prevents creating events with 70%+ similar names
@@ -264,11 +298,14 @@ Staff accounts must be created through the Admin Dashboard.
 
 ## Security Features
 
-- Role-based access control
+- Role-based access control (RBAC)
+- Password hashing with bcrypt
 - Environment variable protection (.env gitignored)
-- Secure file upload validation
+- Secure file upload validation (PDF only, max 10MB)
 - MongoDB injection prevention
 - CORS configuration
+- AWS S3 presigned URLs for secure file access
+- Request validation and sanitization
 
 ## Troubleshooting
 
@@ -290,24 +327,53 @@ lsof -ti:5000 | xargs kill -9
 - Verify AWS credentials in .env
 - Check S3 bucket permissions
 - Ensure bucket region matches configuration
+- Verify IAM user has necessary S3 permissions (PutObject, GetObject)
+
+### Debug Mode
+The backend has minimal console logging by default. Only the following messages are shown:
+- `Backend running on http://localhost:5000`
+- `MongoDB Connected (Atlas)`
+
+All other debug logs are commented out for cleaner terminal output.
 
 ## API Endpoints
 
 ### Authentication
 - `POST /api/auth/login` - User/Staff login
+- `POST /api/auth/admin-login` - Admin login
 
 ### Requests
 - `POST /api/requests` - Create event request
 - `GET /api/requests` - Get requests (filtered by role/staff)
 - `GET /api/requests/:id` - Get single request
+- `PUT /api/requests/:id` - Edit request (staff only)
 - `PUT /api/requests/:id/resubmit` - Resubmit after recreation
 - `POST /api/requests/:id/action` - Approve/Recreate
 - `GET /api/requests/check-reference/:refNumber` - Check reference uniqueness
 - `GET /api/requests/:id/approval-letter` - Generate approval PDF
+- `GET /api/requests/track` - Track requests by status categories
+- `GET /api/requests/history/:staffId` - Get request history for staff
+
+### Staff Management
+- `POST /api/staff/create` - Create staff account (admin)
+- `POST /api/staff/login` - Staff login
+- `GET /api/staff/all` - Get all staff (admin)
+- `PUT /api/staff/:id` - Update staff (admin)
+- `DELETE /api/staff/:id` - Delete staff (admin)
+
+### HOD Management
+- `POST /api/admin/hod/create` - Create HOD
+- `PUT /api/admin/hod/:department` - Update HOD
+- `GET /api/admin/hod/:department` - Get HOD by department
+- `PUT /api/admin/hod/:department/reset-password` - Reset HOD password
+- `GET /api/admin/departments` - Get all departments
+
+### Role Management (IQAC, Principal, Director, AO, CEO)
+- `POST /api/admin/:role/create` - Create role user
+- `GET /api/admin/:role` - Get role user details
+- `PUT /api/admin/:role/reset-password` - Reset role password
 
 ### Admin
-- `POST /api/admin/create-staff` - Create staff account
-- `POST /api/admin/create-hod` - Assign HOD
 - `GET /api/admin/all-requests` - Get all requests
 - `DELETE /api/admin/delete-request/:id` - Delete request
 - `DELETE /api/admin/delete-all-requests` - Delete all requests
