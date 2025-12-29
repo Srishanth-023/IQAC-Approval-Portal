@@ -956,16 +956,22 @@ app.post("/api/requests/:id/action", async (req, res) => {
 // Cache logo base64 to avoid reading file on every request
 let cachedLogoBase64 = null;
 function getLogoBase64() {
+  // Reset cache to force reload - remove this line after testing
+  cachedLogoBase64 = null;
+  
   if (cachedLogoBase64) return cachedLogoBase64;
   
   try {
     const path = require("path");
-    const logoPath = path.join(__dirname, "..", "kite-logo.webp");
+    const logoPath = path.join(__dirname, "..", "frontend", "src", "assets", "kite-logo.png");
+    console.log("Loading logo from:", logoPath);
     const logoBuffer = fs.readFileSync(logoPath);
-    cachedLogoBase64 = `data:image/webp;base64,${logoBuffer.toString("base64")}`;
+    cachedLogoBase64 = `data:image/png;base64,${logoBuffer.toString("base64")}`;
+    console.log("Logo loaded successfully, base64 length:", cachedLogoBase64.length);
     return cachedLogoBase64;
   } catch (err) {
     console.error("Logo not found:", err.message);
+    console.error("Full error:", err);
     return "";
   }
 }
@@ -1015,10 +1021,14 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
           body {
             font-family: Arial, sans-serif;
             color: #333;
-            padding: 20px;
+            padding: 15px;
             position: relative;
             min-height: 100vh;
-            border: 2px solid #000;
+          }
+          .page-border {
+            border: 3px solid #000;
+            padding: 20px;
+            min-height: calc(100vh - 30px);
           }
           .letterhead {
             border: 2px solid #000;
@@ -1112,6 +1122,7 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
         </style>
       </head>
       <body>
+        <div class="page-border">
         <div class="letterhead">
           ${logoBase64 ? `<img src="${logoBase64}" class="letterhead-logo" alt="KITE Logo" />` : ''}
           <div class="letterhead-content">
@@ -1155,13 +1166,17 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
             Powered by IPS Tech Community
           </div>
         </div>
+        </div>
       </body>
       </html>
     `;
 
+    // PDF generation options
+    const options = { format: 'A4' };
+
     // Generate approval letter PDF and fetch original report in parallel
     const [approvalLetterBuffer, originalPdfBuffer] = await Promise.all([
-      htmlPdf.generatePdf(file, options),
+      htmlPdf.generatePdf({ content: htmlContent }, options),
       (async () => {
         if (!doc.reportPath) return null;
         
