@@ -223,13 +223,13 @@ export default function AddHod() {
                   </span>
                 )}
               </div>
-              <div className="dashboard-card-body" style={{ display: 'flex', justifyContent: 'center' }}>
+              <div className="dashboard-card-body" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
                     handleSubmit(department);
                   }}
-                  style={{ width: '100%', maxWidth: '500px' }}
+                  style={{ maxWidth: '500px', width: '100%', margin: '0 auto' }}
                 >
                   {/* Name */}
                   <div className="form-group-custom">
