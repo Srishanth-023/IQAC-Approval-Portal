@@ -36,7 +36,7 @@ app.use(cors({
 // ===============================
 // CONSTANTS
 // ===============================
-const DEPARTMENTS = ["AI&DS", "CSE", "ECE", "IT", "MECH", "AI&ML", "CYS"];
+const DEPARTMENTS = ["AI&DS", "CSE", "ECE", "IT", "MECH", "AI&ML", "CYS", "R&A", "CSBS", "S&H"];
 
 // Auto-escalation timeout: 1 minute (60000ms) for testing
 // Change to desired production value later (e.g., 1 day = 86400000ms)
