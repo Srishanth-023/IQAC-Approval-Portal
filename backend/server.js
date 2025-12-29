@@ -135,13 +135,17 @@ async function performAutoEscalation(request) {
       
       // TODO: Send notification to next role and the skipped role
     } else {
-      // No next role, mark as completed
-      request.currentRole = null;
-      request.overallStatus = "Completed";
-      request.isCompleted = true;
-      request.currentRoleStartTime = null;
+      // Last role in the flow - DO NOT auto-complete
+      // Keep the request with the last role until they take action
+      request.overallStatus = `Waiting approval for ${currentRole} (Last Role - No auto-escalation)`;
+      request.currentRoleStartTime = new Date();
       
-      console.log(`Auto-escalated request ${request._id} - marked as completed`);
+      console.log(`Auto-escalation reached last role ${currentRole} for request ${request._id} - staying with this role until action taken`);
+      
+      // Remove the last role from lockedOutRoles so they can still take action
+      if (request.lockedOutRoles && request.lockedOutRoles.includes(currentRole)) {
+        request.lockedOutRoles = request.lockedOutRoles.filter(role => role !== currentRole);
+      }
     }
     
     await request.save();
