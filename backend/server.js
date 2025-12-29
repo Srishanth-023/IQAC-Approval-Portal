@@ -131,8 +131,6 @@ async function performAutoEscalation(request) {
       request.overallStatus = `Waiting approval for ${nextRole}`;
       request.currentRoleStartTime = new Date();
       
-      console.log(`Auto-escalated request ${request._id} from ${currentRole} to ${nextRole}`);
-      
       // TODO: Send notification to next role and the skipped role
     } else {
       // No next role, mark as completed
@@ -140,8 +138,6 @@ async function performAutoEscalation(request) {
       request.overallStatus = "Completed";
       request.isCompleted = true;
       request.currentRoleStartTime = null;
-      
-      console.log(`Auto-escalated request ${request._id} - marked as completed`);
     }
     
     await request.save();
@@ -171,8 +167,6 @@ function startAutoEscalationJob() {
       console.error("Auto-escalation job error:", error);
     }
   }, 10000); // Check every 10 seconds
-  
-  console.log("Auto-escalation job started - checking every 10 seconds");
 }
 
 // ===============================
@@ -964,10 +958,8 @@ function getLogoBase64() {
   try {
     const path = require("path");
     const logoPath = path.join(__dirname, "..", "frontend", "src", "assets", "kite-logo.png");
-    console.log("Loading logo from:", logoPath);
     const logoBuffer = fs.readFileSync(logoPath);
     cachedLogoBase64 = `data:image/png;base64,${logoBuffer.toString("base64")}`;
-    console.log("Logo loaded successfully, base64 length:", cachedLogoBase64.length);
     return cachedLogoBase64;
   } catch (err) {
     console.error("Logo not found:", err.message);
@@ -1657,7 +1649,6 @@ app.get("/api/tracking/requests", async (req, res) => {
     }
 
     const allRequests = await Request.find(query).sort({ createdAt: -1 });
-    console.log(`Found ${allRequests.length} total requests for query:`, query);
 
     // Categorize requests
     const inProgress = [];
@@ -1693,14 +1684,7 @@ app.get("/api/tracking/requests", async (req, res) => {
       // because an authority can approve, then recreate, then approve again
       const allOwnApprovals = req.approvals.filter(a => a.role === role);
       const ownApproval = allOwnApprovals.length > 0 ? allOwnApprovals[allOwnApprovals.length - 1] : null;
-      
-      // Debug logging for recreated by others
-      if (role === "HOD" && req.approvals.some(a => a.status === "Recreated")) {
-        console.log(`HOD Debug - Request ${req.eventName}:`, {
-          ownApproval: ownApproval,
-          allApprovals: req.approvals.map(a => ({ role: a.role, status: a.status }))
-        });
-      }
+
 
       // IN PROGRESS: Request is still in workflow (not completed) AND has reached or passed this authority
       // This includes:
@@ -1726,11 +1710,9 @@ app.get("/api/tracking/requests", async (req, res) => {
 
       // COMPLETED: Request is fully approved by all authorities AND this authority has approved it
       if (req.isCompleted && ownApproval && ownApproval.status === "Approved") {
-        console.log(`Adding to completed: ${req.eventName} (isCompleted: ${req.isCompleted}, ownApproval: ${ownApproval?.status})`);
         completed.push(req);
-      } else if (req.isCompleted) {
-        console.log(`Not adding ${req.eventName} to completed - ownApproval: ${ownApproval?.status || 'none'}`);
       }
+
 
       // RECREATED BY OWN - Show if ANY of this authority's approvals is "Recreated"
       // (not just the most recent one)
@@ -1759,7 +1741,6 @@ app.get("/api/tracking/requests", async (req, res) => {
         const recreatedApproval = recreatedAfterByHigher || recreatedBeforeByLower;
         
         if (recreatedApproval) {
-          console.log(`Adding to recreatedByOthers for ${role}:`, req.eventName, "recreated by:", recreatedApproval.role);
           recreatedByOthers.push({
             ...req.toObject(),
             recreatedByRole: recreatedApproval.role
@@ -1767,8 +1748,6 @@ app.get("/api/tracking/requests", async (req, res) => {
         }
       }
     });
-
-    console.log(`Tracking results - InProgress: ${inProgress.length}, Accepted: ${accepted.length}, RecreatedByOwn: ${recreatedByOwn.length}, RecreatedByOthers: ${recreatedByOthers.length}, Completed: ${completed.length}`);
 
     res.json({
       inProgress,
