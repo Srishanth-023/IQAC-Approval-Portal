@@ -14,7 +14,7 @@ export default function Login() {
   const [department, setDepartment] = useState("");
   const [password, setPassword] = useState("");
 
-  const departments = ["AI&DS", "CSE", "ECE", "IT", "MECH", "AI&ML", "CYS"];
+  const departments = ["AI&DS", "CSE", "ECE", "IT", "MECH", "AI&ML", "CYS", "R&A", "CSBS", "S&H"];
 
   const handleLogin = async (e) => {
     e.preventDefault();

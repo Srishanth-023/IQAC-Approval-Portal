@@ -457,7 +457,9 @@ app.post("/api/auth/login", async (req, res) => {
 
     // HOD LOGIN (per department)
     if (role === "HOD") {
-      department = (department || "").toUpperCase();
+      if (!department) {
+        return res.status(400).json({ error: "Department is required for HOD login" });
+      }
 
       const hodUser = await User.findOne({
         role: "HOD",
@@ -1425,8 +1427,6 @@ app.post("/api/admin/create-hod", requireAdmin, async (req, res) => {
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    department = department.toUpperCase();
-
     if (!DEPARTMENTS.includes(department)) {
       return res
         .status(400)
@@ -1468,7 +1468,7 @@ app.post("/api/admin/create-hod", requireAdmin, async (req, res) => {
 //  Get HOD by Department (Admin)
 app.get("/api/admin/get-hod/:department", requireAdmin, async (req, res) => {
   try {
-    const deptParam = (req.params.department || "").toUpperCase();
+    const deptParam = req.params.department;
 
     const hod = await User.findOne({ role: "HOD", department: deptParam });
 
@@ -1520,7 +1520,7 @@ app.put("/api/admin/update-hod/:department", requireAdmin, async (req, res) => {
 //  Delete/Unassign HOD (Admin)
 app.delete("/api/admin/delete-hod/:department", requireAdmin, async (req, res) => {
   try {
-    const deptParam = (req.params.department || "").toUpperCase();
+    const deptParam = req.params.department;
 
     const hod = await User.findOneAndDelete({
       role: "HOD",

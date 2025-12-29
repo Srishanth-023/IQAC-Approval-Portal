@@ -18,7 +18,7 @@ const requestSchema = new mongoose.Schema(
     department: {
       type: String,
       required: true,
-      enum: ["AI&DS", "CSE", "ECE", "IT", "MECH", "AI&ML", "CYS"],
+      enum: ["AI&DS", "CSE", "ECE", "IT", "MECH", "AI&ML", "CYS", "R&A", "CSBS", "S&H"],
     },
     eventName: { type: String, required: true },
     eventDate: { type: String, required: true }, // or Date if you want
