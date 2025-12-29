@@ -138,7 +138,7 @@ async function performAutoEscalation(request) {
       request.overallStatus = `Waiting approval for ${currentRole} (Last Role - No auto-escalation)`;
       request.currentRoleStartTime = new Date();
       
-      console.log(`Auto-escalation reached last role ${currentRole} for request ${request._id} - staying with this role until action taken`);
+    //       console.log(`Auto-escalation reached last role ${currentRole} for request ${request._id} - staying with this role until action taken`);
       
       // Remove the last role from lockedOutRoles so they can still take action
       if (request.lockedOutRoles && request.lockedOutRoles.includes(currentRole)) {
@@ -149,7 +149,7 @@ async function performAutoEscalation(request) {
     await request.save();
     return true;
   } catch (error) {
-    console.error(`Error auto-escalating request ${request._id}:`, error);
+    //     console.error(`Error auto-escalating request ${request._id}:`, error);
     return false;
   }
 }
@@ -170,7 +170,7 @@ function startAutoEscalationJob() {
         }
       }
     } catch (error) {
-      console.error("Auto-escalation job error:", error);
+      // console.error("Auto-escalation job error:", error);
     }
   }, 10000); // Check every 10 seconds
 }
@@ -353,7 +353,7 @@ mongoose
     }
   })
   .catch((err) => {
-    console.error("MongoDB connection error:", err);
+    //     console.error("MongoDB connection error:", err);
   });
 
 // ===============================
@@ -519,7 +519,7 @@ app.post("/api/auth/login", async (req, res) => {
       },
     });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -600,7 +600,7 @@ app.post("/api/requests", upload.single("event_report"), async (req, res) => {
 
     res.json({ message: "Request created", request: newReq });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -645,7 +645,7 @@ app.put("/api/requests/:id/resubmit", upload.single("event_report"), async (req,
     
     res.json({ message: "Request resubmitted successfully", request: doc });
   } catch (e) {
-    console.error("Resubmit error:", e);
+    //     console.error("Resubmit error:", e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -670,7 +670,7 @@ app.get("/api/requests/check-reference/:refNumber", async (req, res) => {
     
     res.json({ exists: false });
   } catch (e) {
-    console.error("Error checking reference number:", e);
+    //     console.error("Error checking reference number:", e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -703,7 +703,7 @@ app.get("/api/requests", async (req, res) => {
 
     res.json(requestsWithUrls);
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -724,7 +724,7 @@ app.get("/api/requests/:id", async (req, res) => {
       reportUrl,
     });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -746,7 +746,7 @@ app.get("/api/requests/:id/report-url", async (req, res) => {
     
     res.json({ url: reportUrl });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -803,7 +803,7 @@ app.post("/api/requests/:id/edit", upload.single("event_report"), async (req, re
     
     res.json({ message: "Request updated and resubmitted for approval", request: doc });
   } catch (e) {
-    console.error("Edit request error:", e);
+    //     console.error("Edit request error:", e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -926,7 +926,7 @@ app.post("/api/requests/:id/action", async (req, res) => {
 
     if (idx === -1) {
       // Role not found in workflow - this shouldn't happen
-      console.error("ERROR: Current role not found in workflow sequence!");
+    //       console.error("ERROR: Current role not found in workflow sequence!");
       return res.status(400).json({ error: "Invalid workflow state" });
     }
 
@@ -945,7 +945,7 @@ app.post("/api/requests/:id/action", async (req, res) => {
     await doc.save();
     res.json({ message: "Status updated" });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -968,8 +968,8 @@ function getLogoBase64() {
     cachedLogoBase64 = `data:image/png;base64,${logoBuffer.toString("base64")}`;
     return cachedLogoBase64;
   } catch (err) {
-    console.error("Logo not found:", err.message);
-    console.error("Full error:", err);
+    //     console.error("Logo not found:", err.message);
+    //     console.error("Full error:", err);
     return "";
   }
 }
@@ -1199,7 +1199,7 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
           
           return buffer;
         } catch (error) {
-          console.error("Error fetching original PDF:", error.message);
+    //           console.error("Error fetching original PDF:", error.message);
           return null;
         }
       })()
@@ -1231,7 +1231,7 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
         const mergedPdfBytes = await mergedPdf.save();
         finalPdfBuffer = Buffer.from(mergedPdfBytes);
       } catch (mergeError) {
-        console.error("PDF merge error:", mergeError.message);
+    //         console.error("PDF merge error:", mergeError.message);
         // If merge fails, just send the approval letter
       }
     }
@@ -1253,7 +1253,7 @@ app.get("/api/requests/:id/approval-letter", async (req, res) => {
     res.send(finalPdfBuffer);
 
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).send("Server error");
   }
 });
@@ -1298,7 +1298,7 @@ app.post("/api/admin/create-staff", requireAdmin, async (req, res) => {
       }
     });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -1309,7 +1309,7 @@ app.get("/api/admin/all-staff", requireAdmin, async (req, res) => {
     const staffs = await Staff.find({});
     res.json({ staffs });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -1344,7 +1344,7 @@ app.put("/api/admin/update-staff/:id", requireAdmin, async (req, res) => {
       }
     });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -1358,7 +1358,7 @@ app.delete("/api/admin/delete-staff/:id", requireAdmin, async (req, res) => {
 
     res.json({ message: "Staff deleted" });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -1384,7 +1384,7 @@ app.post("/api/admin/reset-staff-password/:id", requireAdmin, async (req, res) =
 
     res.json({ message: "Staff password reset successfully" });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -1411,7 +1411,7 @@ app.post("/api/admin/reset-hod-password/:department", requireAdmin, async (req, 
 
     res.json({ message: "HOD password reset successfully" });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -1460,7 +1460,7 @@ app.post("/api/admin/create-hod", requireAdmin, async (req, res) => {
       }
     });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -1474,7 +1474,7 @@ app.get("/api/admin/get-hod/:department", requireAdmin, async (req, res) => {
 
     res.json({ hod: hod || null });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -1512,7 +1512,7 @@ app.put("/api/admin/update-hod/:department", requireAdmin, async (req, res) => {
       }
     });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -1533,7 +1533,7 @@ app.delete("/api/admin/delete-hod/:department", requireAdmin, async (req, res) =
 
     res.json({ message: "HOD unassigned successfully" });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -1549,7 +1549,7 @@ app.get("/api/admin/all-requests", requireAdmin, async (req, res) => {
       }))
     );
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -1572,7 +1572,7 @@ app.delete("/api/admin/delete-request/:id", requireAdmin, async (req, res) => {
 
     res.json({ message: "Request deleted successfully" });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -1587,7 +1587,7 @@ app.delete("/api/admin/delete-all-requests", requireAdmin, async (req, res) => {
       deletedCount: result.deletedCount 
     });
   } catch (e) {
-    console.error("Delete all requests error:", e);
+    //     console.error("Delete all requests error:", e);
     res.status(500).json({ error: "Server error while deleting requests" });
   }
 });
@@ -1626,7 +1626,7 @@ app.post("/api/admin/hash-all-passwords", requireAdmin, async (req, res) => {
       hashedCount 
     });
   } catch (e) {
-    console.error(e);
+    //     console.error(e);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -1640,7 +1640,7 @@ app.get("/api/tracking/requests", async (req, res) => {
   try {
     const { role, department } = req.query;
 
-    console.log("Tracking request received - Role:", role, "Department:", department);
+    //     console.log("Tracking request received - Role:", role, "Department:", department);
 
     if (!role) {
       return res.status(400).json({ error: "Role is required" });
@@ -1765,7 +1765,7 @@ app.get("/api/tracking/requests", async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Tracking error:", error);
+    // console.error("Tracking error:", error);
     res.status(500).json({ error: "Failed to fetch tracking data" });
   }
 });
