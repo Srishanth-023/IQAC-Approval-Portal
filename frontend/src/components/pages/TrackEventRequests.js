@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchTrackingRequests } from "../../api";
+import { fetchTrackingRequests, approvalLetterDownloadUrl } from "../../api";
 import { toast } from "react-toastify";
 import "../../styles/Dashboard.css";
 import logo from '../../assets/kite-logo.png';
@@ -454,6 +454,23 @@ export default function TrackEventRequests() {
           >
             View Details
           </button>
+          {sectionType === "completed" && req.isCompleted && (
+            <button
+              className="btn-success-custom"
+              style={{ marginLeft: '0.5rem' }}
+              onClick={() => {
+                const link = document.createElement("a");
+                link.href = approvalLetterDownloadUrl(req._id);
+                link.download = `Approval-Report-${req.referenceNo || req._id}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                toast.success("Downloading approval report...");
+              }}
+            >
+              <BsCheckCircle style={{ marginRight: '0.25rem' }} /> Generate Approval Report
+            </button>
+          )}
         </div>
       </div>
     );
