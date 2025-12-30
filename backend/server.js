@@ -40,7 +40,7 @@ const DEPARTMENTS = ["AI&DS", "CSE", "ECE", "IT", "MECH", "AI&ML", "CYS", "R&A",
 
 // Auto-escalation timeout: 1 minute (60000ms) for testing
 // Change to desired production value later (e.g., 1 day = 86400000ms)
-const AUTO_ESCALATION_TIMEOUT = 60000; // 1 minute
+const AUTO_ESCALATION_TIMEOUT = 120000; // 2 minute
 
 // Role hierarchy - Faculty → HOD → IQAC → Principal → Director → AO → CEO
 const ROLE_HIERARCHY = ["HOD", "IQAC", "PRINCIPAL", "DIRECTOR", "AO", "CEO"];
