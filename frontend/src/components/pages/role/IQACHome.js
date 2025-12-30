@@ -13,7 +13,8 @@ import "../../../styles/Dashboard.css";
 import logo from '../../../assets/kite-logo.png';
 import { 
   BsClipboardData, BsFileEarmarkText, BsCheckCircle, BsSearch, 
-  BsArrowRepeat, BsExclamationTriangle, BsClockHistory 
+  BsArrowRepeat, BsExclamationTriangle, BsClockHistory, BsChatLeftText,
+  BsInfoCircle, BsEye
 } from "react-icons/bs";
 
 const flowOptions = ["PRINCIPAL", "DIRECTOR", "AO", "CEO"];
@@ -34,6 +35,10 @@ function IQACHome() {
   // Filter states
   const [filterDepartment, setFilterDepartment] = useState("");
   const [filterEventName, setFilterEventName] = useState("");
+  
+  // Modal state for viewing remarks
+  const [showRemarksModal, setShowRemarksModal] = useState(false);
+  const [selectedRequestRemarks, setSelectedRequestRemarks] = useState(null);
 
   const logout = () => {
     localStorage.removeItem("user");
@@ -79,6 +84,19 @@ function IQACHome() {
     } catch {
       toast.error("Failed to load report");
     }
+  };
+
+  const handleViewRemarks = (request) => {
+    setSelectedRequestRemarks({
+      eventName: request.eventName,
+      eventDate: request.eventDate,
+      staffName: request.staffName,
+      department: request.department,
+      purpose: request.purpose,
+      originalPurpose: request.originalPurpose,
+      approvals: request.approvals || []
+    });
+    setShowRemarksModal(true);
   };
 
   const checkRefNumberUniqueness = async (refNo, requestId) => {
@@ -523,6 +541,16 @@ function IQACHome() {
                           />
                         </div>
 
+                        {/* View Remarks Button */}
+                        <button
+                          className="btn-secondary-custom btn-sm-custom w-100"
+                          onClick={() => handleViewRemarks(req)}
+                          title="View previous authority remarks"
+                          style={{ marginBottom: '0.5rem' }}
+                        >
+                          <BsEye style={{ marginRight: '0.25rem' }} /> Remarks
+                        </button>
+
                         {/* Action Buttons */}
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button
@@ -632,6 +660,112 @@ function IQACHome() {
                   </p>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* REMARKS MODAL */}
+      {showRemarksModal && selectedRequestRemarks && (
+        <div 
+          className="modal-overlay"
+          onClick={() => setShowRemarksModal(false)}
+        >
+          <div 
+            className="modal-container"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '700px' }}
+          >
+            <div className="modal-header-custom">
+              <h5><BsChatLeftText style={{ marginRight: '0.5rem' }} /> Previous Authority Remarks</h5>
+              <button
+                className="modal-close-btn"
+                onClick={() => setShowRemarksModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-body-custom">
+              <div className="alert-custom alert-info" style={{ marginBottom: '1.5rem' }}>
+                <div>
+                  <h6 style={{ fontWeight: 700, marginBottom: '0.75rem' }}><BsClipboardData style={{ marginRight: '0.25rem' }} /> Event Details</h6>
+                  <p style={{ margin: '0.25rem 0' }}><strong>Event Name:</strong> {selectedRequestRemarks.eventName}</p>
+                  <p style={{ margin: '0.25rem 0' }}><strong>Staff:</strong> {selectedRequestRemarks.staffName}</p>
+                  <p style={{ margin: '0.25rem 0' }}><strong>Department:</strong> {selectedRequestRemarks.department}</p>
+                  <p style={{ margin: '0.25rem 0' }}><strong>Event Date:</strong> {selectedRequestRemarks.eventDate}</p>
+                  <p style={{ margin: '0.25rem 0' }}><strong>Purpose:</strong> {selectedRequestRemarks.purpose}</p>
+                  {selectedRequestRemarks.originalPurpose && selectedRequestRemarks.originalPurpose !== selectedRequestRemarks.purpose && (
+                    <p style={{ margin: '0.25rem 0', color: '#dc2626', fontStyle: 'italic' }}>
+                      <strong>⚠️ Original Purpose:</strong> {selectedRequestRemarks.originalPurpose}
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              <h6 style={{ fontWeight: 700, marginBottom: '1rem', color: '#1e293b' }}><BsClockHistory style={{ marginRight: '0.25rem' }} /> Approval History & Remarks</h6>
+              
+              {selectedRequestRemarks.approvals.length === 0 ? (
+                <div className="alert-custom alert-warning">
+                  <span><BsInfoCircle style={{ marginRight: '0.25rem' }} /> No remarks or comments have been provided yet.</span>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {selectedRequestRemarks.approvals.map((approval, idx) => (
+                    <div key={idx} style={{ 
+                      background: 'white', 
+                      borderRadius: '0.75rem', 
+                      padding: '1rem',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                      border: '1px solid #e2e8f0'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                        <span className={`badge-custom ${
+                          approval.status === 'Approved' ? 'badge-approved' : 
+                          approval.status === 'Recreated' ? 'badge-pending' : 
+                          'badge-processing'
+                        }`}>
+                          {approval.role}
+                        </span>
+                        <small style={{ color: '#64748b' }}>
+                          {new Date(approval.decidedAt).toLocaleString()}
+                        </small>
+                      </div>
+                      <div style={{ marginBottom: '0.5rem' }}>
+                        <strong>Status:</strong> 
+                        <span className={`badge-custom ${
+                          approval.status === 'Approved' ? 'badge-approved' : 
+                          approval.status === 'Recreated' ? 'badge-pending' : 
+                          'badge-processing'
+                        }`} style={{ marginLeft: '0.5rem' }}>
+                          {approval.status}
+                        </span>
+                      </div>
+                      <div>
+                        <strong>Comments:</strong>
+                        <p style={{ 
+                          margin: '0.5rem 0 0 0', 
+                          padding: '0.75rem', 
+                          background: approval.status === 'Recreated' ? '#fef3c7' : '#f8fafc', 
+                          borderRadius: '0.5rem',
+                          color: approval.comments ? '#334155' : '#94a3b8',
+                          fontStyle: approval.comments ? 'normal' : 'italic',
+                          borderLeft: approval.status === 'Recreated' ? '3px solid #f59e0b' : 'none'
+                        }}>
+                          {approval.comments || (approval.status === 'Recreated' ? 'Recreation requested - No specific comments provided' : 'No comments provided')}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer-custom">
+              <button
+                className="btn-secondary-custom"
+                onClick={() => setShowRemarksModal(false)}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
