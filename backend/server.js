@@ -20,7 +20,7 @@ dotenv.config();
 
 // MODELS
 const User = require("./models/User");
-const Staff = require("./models/staff");
+const Staff = require("./models/Staff");
 const Request = require("./models/Request");
 
 // APP SETUP
@@ -32,6 +32,14 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'x-user-role']
 }));
+
+// CORS SETUP
+// const cors = require("cors");
+
+// app.use(cors({
+//   origin: "*",
+//   credentials: true
+// }));
 
 // ===============================
 // CONSTANTS
@@ -1773,8 +1781,14 @@ app.get("/api/tracking/requests", async (req, res) => {
 // ===============================
 // START SERVER
 // ===============================
-app.listen(5000, () => {
-  console.log("Backend running on http://localhost:5000");
-  // Start the auto-escalation background job
-  startAutoEscalationJob();
-});
+// app.listen(5000, () => {
+//   console.log("Backend running on http://localhost:5000");
+//   // Start the auto-escalation background job
+//   startAutoEscalationJob();
+// });
+
+// Start background job immediately
+startAutoEscalationJob();
+
+// Export app for Vercel
+module.exports = app;
